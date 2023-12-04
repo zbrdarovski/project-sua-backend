@@ -13,6 +13,18 @@ public class Startup
     {
         services.AddHealthChecks();
 
+        // Configure CORS
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowSpecificOrigin",
+                builder =>
+                {
+                    builder.WithOrigins("https://localhost:44459/") // Add your frontend URL here
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+        });
+
         services.AddSingleton<MongoDbContext>(sp =>
         {
             var mongoDbSettings = Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();

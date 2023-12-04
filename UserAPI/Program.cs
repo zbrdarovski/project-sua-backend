@@ -16,6 +16,18 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddHealthChecks();
 
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder.WithOrigins("https://localhost:44459") // Add your frontend URL here
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
 builder.Services.AddSingleton<MongoDbContext>(sp =>
 {
     var configuration = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
@@ -45,7 +57,7 @@ app.UseHttpsRedirection();
 
 app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext) =>
 {
-    var user = new User { Username = userDto.Username, Password = userDto.Password };
+    var user = new User { Id = userDto.Id, Username = userDto.Username, Password = userDto.Password };
     dbContext.Users.InsertOne(user);
     return Results.Ok(new { Message = "Registration successful" });
 }).WithName("Register");
@@ -132,6 +144,9 @@ app.MapGet("/api/users/username/{username}", (string username, [FromServices] Mo
     return Results.Ok(user);
 }).WithName("GetUserByUsername");
 
-app.UseHealthChecks("/health");
+app.UseHealthChecks("/api/users/health");
+
+// Enable CORS
+app.UseCors("AllowSpecificOrigin");
 
 app.Run();

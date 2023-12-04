@@ -41,8 +41,7 @@ public class UserController : ControllerBase
     public IActionResult Login([FromBody] UserLoginDto userDto)
     {
         var user = _dbContext.Users.Find(u => u.Username == userDto.Username).FirstOrDefault();
-
-        if (user == null || userDto == null || VerifyPassword(userDto.Password, user.Password) == false)
+        if (user == null || userDto == null || !VerifyPassword(userDto.Password, user.Password))
         {
             return Unauthorized(new { Message = "Invalid credentials" });
         }
@@ -56,8 +55,7 @@ public class UserController : ControllerBase
     public IActionResult ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
     {
         var user = _dbContext.Users.Find(u => u.Username == changePasswordDto.Username).FirstOrDefault();
-
-        if (user == null || changePasswordDto == null || VerifyPassword(changePasswordDto.CurrentPassword, user.Password) == false)
+        if (user == null || changePasswordDto == null || !VerifyPassword(changePasswordDto.CurrentPassword, user.Password))
         {
             return Unauthorized(new { Message = "Invalid credentials" });
         }
@@ -142,7 +140,7 @@ public class UserController : ControllerBase
             throw new ArgumentNullException(nameof(password));
         }
 
-        return BCrypt.Net.BCrypt.HashPassword(password);
+        return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt());
     }
 
     private bool VerifyPassword(string? inputPassword, string? hashedPassword)
