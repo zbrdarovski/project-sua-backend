@@ -24,6 +24,10 @@ const Delivery = () => {
         console.log('Order cancelled');
     };
 
+    const calculateTotalAmount = () => {
+        return cart.reduce((total, item) => total + item.amount * item.price, 0);
+    };
+
     return (
         <div className="Delivery">
             <h2>Delivery Page</h2>
@@ -37,6 +41,7 @@ const Delivery = () => {
                             </p>
                         </div>
                     ))}
+                    <p>Total Amount: ${calculateTotalAmount()}</p>
                     <div className="address-input">
                         <p>Address:</p>
                         <input
