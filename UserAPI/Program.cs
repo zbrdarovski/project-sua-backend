@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         builder =>
         {
-            builder.WithOrigins("https://localhost:44459") // Add your frontend URL here
+            builder.WithOrigins("http://localhost:44459") // Add your frontend URL here
                    .AllowAnyHeader()
                    .AllowAnyMethod();
         });
@@ -52,8 +52,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Uporabniska avtentikacija API"));
 }
-
-app.UseHttpsRedirection();
 
 app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext) =>
 {

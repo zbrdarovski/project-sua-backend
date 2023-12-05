@@ -1,4 +1,4 @@
-// Program.cs
+//Program.cs
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
@@ -23,7 +23,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         builder =>
         {
-            builder.WithOrigins("https://localhost:44459")
+            builder.WithOrigins("http://localhost:44459")
                    .AllowAnyHeader()
                    .AllowAnyMethod();
         });
@@ -53,8 +53,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Dostava API"));
 }
-
-app.UseHttpsRedirection();
 
 app.MapPost("/api/deliveries", (DeliveryCreateDto deliveryDto, [FromServices] MongoDbContext dbContext) =>
 {

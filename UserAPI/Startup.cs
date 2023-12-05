@@ -1,6 +1,4 @@
-﻿// Startup.cs
-
-public class Startup
+﻿public class Startup
 {
     public Startup(IConfiguration configuration)
     {
@@ -19,7 +17,7 @@ public class Startup
             options.AddPolicy("AllowSpecificOrigin",
                 builder =>
                 {
-                    builder.WithOrigins("https://localhost:44459/") // Add your frontend URL here
+                    builder.WithOrigins("http://localhost:44459/") // Add your frontend URL here
                            .AllowAnyHeader()
                            .AllowAnyMethod();
                 });
