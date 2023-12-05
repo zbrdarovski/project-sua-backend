@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import './Shop.css';
 import Dashboard from './Dashboard';
+import { useNavigate } from 'react-router-dom';
 
 const Shop = () => {
     const [cart, setCart] = useState([]);
@@ -20,6 +21,12 @@ const Shop = () => {
         { id: 4, name: '1998 NBA Finals Game 2 Air Jordan 13s', price: 2200000 },
         { id: 5, name: 'Harry Winston Runy Slippers', price: 3010000 },
     ];
+
+    const navigate = useNavigate();
+
+    const handleCheckout = () => {
+        navigate('/delivery', { state: { cart: cart } });
+    };
 
     const addToCart = (product) => {
         if (availableQuantities[product.id] > 0) {
@@ -95,7 +102,9 @@ const Shop = () => {
                 ))}
                 <p>Total Amount: ${calculateTotalAmount()}</p>
                 <div className='checkout-button'>
-                    <button onClick={() => console.log('Checkout clicked')}>Checkout</button>
+                    <button onClick={handleCheckout} disabled={cart.length === 0}>
+                        Checkout
+                    </button>
                 </div>
             </div>
         </div>
