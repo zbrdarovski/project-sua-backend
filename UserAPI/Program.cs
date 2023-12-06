@@ -56,8 +56,8 @@ if (app.Environment.IsDevelopment())
 
 app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext) =>
 {
-    // Hash the password before storing it in the database
-    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+    // Combine the password and salt, then hash the result
+    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password + "ProjektSUA");
 
     var user = new User { Id = userDto.Id, Username = userDto.Username, Password = hashedPassword };
     dbContext.Users.InsertOne(user);
@@ -69,7 +69,7 @@ app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbCon
 {
     var user = dbContext.Users.Find(u => u.Username == userDto.Username).FirstOrDefault();
 
-    if (user == null || !BCrypt.Net.BCrypt.Verify(userDto.Password, user.Password))
+    if (user == null || !BCrypt.Net.BCrypt.Verify(userDto.Password + "ProjektSUA", user.Password))
     {
         return Results.Unauthorized();
     }
@@ -81,15 +81,16 @@ app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, 
 {
     var user = dbContext.Users.Find(u => u.Username == changePasswordDto.Username).FirstOrDefault();
 
-    if (user == null || !BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword, user.Password))
+    if (user == null || !BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword + "ProjektSUA", user.Password))
     {
         return Results.Unauthorized();
     }
 
-    // Hash the new password before updating it in the database
-    string hashedNewPassword = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+    // Combine the new password and salt, then hash the result
+    string hashedNewPassword = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword + "ProjektSUA");
 
     user.Password = hashedNewPassword;
+
     dbContext.Users.ReplaceOne(u => u.Id == user.Id, user);
 
     return Results.Ok(new { Message = "Password changed successfully" });
