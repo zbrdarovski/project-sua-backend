@@ -1,5 +1,6 @@
 // Program.cs
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Uporabniska avtentikacija API",
         Version = "v1"
@@ -55,16 +56,20 @@ if (app.Environment.IsDevelopment())
 
 app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext) =>
 {
-    var user = new User { Id = userDto.Id, Username = userDto.Username, Password = userDto.Password };
+    // Hash the password before storing it in the database
+    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+
+    var user = new User { Id = userDto.Id, Username = userDto.Username, Password = hashedPassword };
     dbContext.Users.InsertOne(user);
+
     return Results.Ok(new { Message = "Registration successful" });
 }).WithName("Register");
 
 app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbContext dbContext) =>
 {
-    var user = dbContext.Users.Find(u => u.Username == userDto.Username && u.Password == userDto.Password).FirstOrDefault();
+    var user = dbContext.Users.Find(u => u.Username == userDto.Username).FirstOrDefault();
 
-    if (user == null)
+    if (user == null || !BCrypt.Net.BCrypt.Verify(userDto.Password, user.Password))
     {
         return Results.Unauthorized();
     }
@@ -74,14 +79,17 @@ app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbCon
 
 app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, [FromServices] MongoDbContext dbContext) =>
 {
-    var user = dbContext.Users.Find(u => u.Username == changePasswordDto.Username && u.Password == changePasswordDto.CurrentPassword).FirstOrDefault();
+    var user = dbContext.Users.Find(u => u.Username == changePasswordDto.Username).FirstOrDefault();
 
-    if (user == null)
+    if (user == null || !BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword, user.Password))
     {
         return Results.Unauthorized();
     }
 
-    user.Password = changePasswordDto.NewPassword;
+    // Hash the new password before updating it in the database
+    string hashedNewPassword = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+
+    user.Password = hashedNewPassword;
     dbContext.Users.ReplaceOne(u => u.Id == user.Id, user);
 
     return Results.Ok(new { Message = "Password changed successfully" });
