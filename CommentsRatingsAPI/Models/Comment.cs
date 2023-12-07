@@ -12,8 +12,8 @@ namespace CommentsRatingsAPI.Models
         [BsonElement("itemId")]
         public string ItemId { get; set; }
 
-        [BsonElement("Username")]
-        public string Username { get; set; }
+        [BsonElement("UserId")]
+        public string UserId { get; set; }
 
         [BsonElement("Content")]
         public string Content { get; set; }

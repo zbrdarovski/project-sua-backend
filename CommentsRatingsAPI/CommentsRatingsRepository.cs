@@ -26,7 +26,7 @@ namespace CommentsRatingsAPI
 
         public async Task AddCommentAsync(Comment comment)
         {
-            if (string.IsNullOrWhiteSpace(comment.Id) || string.IsNullOrWhiteSpace(comment.Username) || string.IsNullOrWhiteSpace(comment.Content))
+            if (string.IsNullOrWhiteSpace(comment.Id) || string.IsNullOrWhiteSpace(comment.UserId) || string.IsNullOrWhiteSpace(comment.Content))
             {
                 throw new ArgumentException("Invalid comment. Please provide valid data.");
             }
@@ -65,7 +65,7 @@ namespace CommentsRatingsAPI
 
         public async Task AddRatingAsync(Rating rating)
         {
-            if (string.IsNullOrWhiteSpace(rating.Id) || string.IsNullOrWhiteSpace(rating.Username) || rating.Value < 1 || rating.Value > 5)
+            if (string.IsNullOrWhiteSpace(rating.Id) || string.IsNullOrWhiteSpace(rating.UserId) || rating.Value < 1 || rating.Value > 5)
             {
                 throw new ArgumentException("Invalid rating. Please provide valid data.");
             }
