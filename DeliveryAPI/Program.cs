@@ -46,6 +46,9 @@ builder.Services.AddSingleton<MongoDbContext>(sp =>
     return new MongoDbContext(configuration.ConnectionString, configuration.DatabaseName);
 });
 
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -54,6 +57,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Dostava API"));
 }
 
+// Ensure UseRouting is called before UseAuthorization
+app.UseRouting();
+
+// UseCors should be placed after UseRouting and before UseAuthorization
+app.UseCors("AllowSpecificOrigin");
+
+app.UseAuthentication(); // Must be after UseRouting()
+app.UseAuthorization(); // Must be after UseAuthentication()
+
+app.UseEndpoints(endpoints =>
+{
+    // ... endpoint configuration
+});
 app.MapPost("/api/deliveries", (DeliveryCreateDto deliveryDto, [FromServices] MongoDbContext dbContext) =>
 {
     var delivery = new Delivery
@@ -103,7 +119,7 @@ app.MapPut("/api/deliveries/{id}", (string id, DeliveryUpdateDto deliveryDto, [F
     dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
 
     return Results.Ok(new { Message = "Delivery updated successfully" });
-}).WithName("UpdateDelivery");
+}).WithName("UpdateDelivery").RequireAuthorization();
 
 app.MapDelete("/api/deliveries/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
 {
@@ -116,7 +132,7 @@ app.MapDelete("/api/deliveries/{id}", (string id, [FromServices] MongoDbContext 
     dbContext.Deliveries.DeleteOne(d => d.Id == id);
 
     return Results.Ok(new { Message = "Delivery deleted successfully" });
-}).WithName("DeleteDelivery");
+}).WithName("DeleteDelivery").RequireAuthorization();
 
 // Additional CRUD Operations
 
@@ -135,7 +151,7 @@ app.MapPut("/api/deliveries/update-coordinates/{id}", (string id, CoordinatesUpd
     dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
 
     return Results.Ok(new { Message = "Coordinates updated successfully" });
-}).WithName("UpdateCoordinates");
+}).WithName("UpdateCoordinates").RequireAuthorization();
 
 app.MapPut("/api/deliveries/update-delivery-time/{id}", (string id, DeliveryTimeUpdateDto deliveryTimeDto, [FromServices] MongoDbContext dbContext) =>
 {
@@ -151,7 +167,7 @@ app.MapPut("/api/deliveries/update-delivery-time/{id}", (string id, DeliveryTime
     dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
 
     return Results.Ok(new { Message = "Delivery time updated successfully" });
-}).WithName("UpdateDeliveryTime");
+}).WithName("UpdateDeliveryTime").RequireAuthorization();
 
 app.MapPut("/api/deliveries/update-address/{id}", (string id, UpdateAddressDto addressDto, [FromServices] MongoDbContext dbContext) =>
 {
@@ -167,7 +183,7 @@ app.MapPut("/api/deliveries/update-address/{id}", (string id, UpdateAddressDto a
     dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
 
     return Results.Ok(new { Message = "Address updated successfully" });
-}).WithName("UpdateAddress");
+}).WithName("UpdateAddress").RequireAuthorization();
 
 app.UseHealthChecks("/api/deliveries/health");
 
