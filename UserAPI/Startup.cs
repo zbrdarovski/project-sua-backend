@@ -1,4 +1,8 @@
-﻿public class Startup
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
+public class Startup
 {
     public Startup(IConfiguration configuration)
     {
@@ -9,6 +13,25 @@
 
     public void ConfigureServices(IServiceCollection services)
     {
+        var key = Encoding.ASCII.GetBytes(Configuration["Jwt:Key"] ?? string.Empty);
+
+        services.AddHttpContextAccessor();
+
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                };
+            });
+
+        services.AddAuthorization();
+
         services.AddHealthChecks();
 
         // Configure CORS

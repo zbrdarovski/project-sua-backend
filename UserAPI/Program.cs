@@ -1,9 +1,17 @@
 // Program.cs
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+var salt = "ProjektSUA";
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile("appsettings.json");
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -25,7 +33,8 @@ builder.Services.AddCors(options =>
         {
             builder.WithOrigins("http://localhost:44459") // Add your frontend URL here
                    .AllowAnyHeader()
-                   .AllowAnyMethod();
+                   .AllowAnyMethod()
+                   .AllowCredentials();
         });
 });
 
@@ -54,10 +63,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Uporabniska avtentikacija API"));
 }
 
+// Ensure UseRouting is called before UseAuthorization
+//app.UseRouting();
+
+// UseCors should be placed after UseRouting and before UseAuthorization
+app.UseCors("AllowSpecificOrigin");
+
+// Add this line to include the UseAuthorization middleware
+//app.UseAuthorization();
+
 app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext) =>
 {
     // Combine the password and salt, then hash the result
-    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password + "ProjektSUA");
+    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password + salt);
 
     var user = new User { Id = userDto.Id, Username = userDto.Username, Password = hashedPassword };
     dbContext.Users.InsertOne(user);
@@ -65,36 +83,96 @@ app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] 
     return Results.Ok(new { Message = "Registration successful" });
 }).WithName("Register");
 
-app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbContext dbContext) =>
+string GenerateJwtToken(string userId, string key, string issuer)
+{
+    if (userId is null || key is null || issuer is null)
+    {
+        // Handle the null reference gracefully or throw an exception.
+        throw new ArgumentNullException("userId, key, and issuer cannot be null.");
+    }
+
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var tokenKey = Encoding.ASCII.GetBytes(key);
+
+    var tokenDescriptor = new SecurityTokenDescriptor
+    {
+        Subject = new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.Name, userId)
+        }),
+        Expires = DateTime.UtcNow.AddHours(1),
+        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature),
+        Issuer = issuer
+    };
+
+    var token = tokenHandler.CreateToken(tokenDescriptor);
+    return tokenHandler.WriteToken(token);
+}
+
+app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] IConfiguration configuration) =>
 {
     var user = dbContext.Users.Find(u => u.Username == userDto.Username).FirstOrDefault();
 
-    if (user == null || !BCrypt.Net.BCrypt.Verify(userDto.Password + "ProjektSUA", user.Password))
+    if (user == null || !BCrypt.Net.BCrypt.Verify(userDto.Password + salt, user.Password))
     {
         return Results.Unauthorized();
     }
 
-    return Results.Ok(new { Message = "Login successful" });
+    // Generate JWT token
+    var token = GenerateJwtToken(user.Id, configuration["Jwt:Key"], configuration["Jwt:Issuer"]);
+
+    // Return token and user ID in response
+    return Results.Ok(new { Message = "Connection successful", Token = token, UserId = user.Id });
 }).WithName("Login");
 
-app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, [FromServices] MongoDbContext dbContext) =>
+
+app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, [FromServices] MongoDbContext dbContext, [FromServices] IHttpContextAccessor httpContextAccessor) =>
 {
     var user = dbContext.Users.Find(u => u.Username == changePasswordDto.Username).FirstOrDefault();
 
-    if (user == null || !BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword + "ProjektSUA", user.Password))
+    if (user == null || !BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword + salt, user.Password))
     {
+        return Results.Unauthorized();
+    }
+
+    // Check for JWT token in the request headers
+    var authorizationHeader = httpContextAccessor.HttpContext.Request.Headers["Authorization"];
+    if (string.IsNullOrWhiteSpace(authorizationHeader) || !authorizationHeader.ToString().StartsWith("Bearer "))
+    {
+        return Results.Unauthorized();
+    }
+
+    var token = authorizationHeader.ToString().Substring("Bearer ".Length);
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var key = Encoding.ASCII.GetBytes(app.Configuration["Jwt:Key"]);
+
+    // Validate JWT token
+    try
+    {
+        tokenHandler.ValidateToken(token, new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+        }, out var validatedToken);
+    }
+    catch (Exception)
+    {
+        // Token validation failed
         return Results.Unauthorized();
     }
 
     // Combine the new password and salt, then hash the result
-    string hashedNewPassword = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword + "ProjektSUA");
+    string hashedNewPassword = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword + salt);
 
     user.Password = hashedNewPassword;
 
     dbContext.Users.ReplaceOne(u => u.Id == user.Id, user);
 
     return Results.Ok(new { Message = "Password changed successfully" });
-}).WithName("ChangePassword");
+}).WithName("ChangePassword").RequireAuthorization();
 
 app.MapGet("/api/users", ([FromServices] MongoDbContext dbContext) =>
 {
@@ -125,7 +203,7 @@ app.MapPut("/api/users/{id}", (string id, UserUpdateDto userDto, [FromServices] 
     dbContext.Users.ReplaceOne(u => u.Id == id, user);
 
     return Results.Ok(new { Message = "User updated successfully" });
-}).WithName("UpdateUser");
+}).WithName("UpdateUser").RequireAuthorization();
 
 app.MapDelete("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
 {
@@ -138,7 +216,7 @@ app.MapDelete("/api/users/{id}", (string id, [FromServices] MongoDbContext dbCon
     dbContext.Users.DeleteOne(u => u.Id == id);
 
     return Results.Ok(new { Message = "User deleted successfully" });
-}).WithName("DeleteUser");
+}).WithName("DeleteUser").RequireAuthorization();
 
 app.MapGet("/api/users/username/{username}", (string username, [FromServices] MongoDbContext dbContext) =>
 {
@@ -152,8 +230,5 @@ app.MapGet("/api/users/username/{username}", (string username, [FromServices] Mo
 }).WithName("GetUserByUsername");
 
 app.UseHealthChecks("/api/users/health");
-
-// Enable CORS
-app.UseCors("AllowSpecificOrigin");
 
 app.Run();
