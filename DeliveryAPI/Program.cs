@@ -74,6 +74,7 @@ app.MapPost("/api/deliveries", (DeliveryCreateDto deliveryDto, [FromServices] Mo
 {
     var delivery = new Delivery
     {
+        Id = deliveryDto.Id,
         UserId = deliveryDto.UserId,
         PaymentId = deliveryDto.PaymentId,
         Address = deliveryDto.Address,

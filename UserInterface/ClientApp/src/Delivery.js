@@ -16,7 +16,7 @@ const Delivery = () => {
                         setHighestDeliveryId(maxId);
                     } else {
                         // If there are no deliveries, set the highestDeliveryId to 0 or 1, depending on your server's expectations
-                        setHighestDeliveryId(1);
+                        setHighestDeliveryId(0);
                     }
                 } else {
                     console.error('Failed to fetch all deliveries:', response.statusText);

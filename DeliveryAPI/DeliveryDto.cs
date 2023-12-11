@@ -1,6 +1,7 @@
 ﻿// DeliveryDto.cs (DTOs)
 public class DeliveryCreateDto
 {
+    public string? Id { get; set; }
     public string? UserId { get; set; }
     public string? PaymentId { get; set; }
     public string? Address { get; set; }
