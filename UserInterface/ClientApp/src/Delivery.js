@@ -4,6 +4,9 @@ import './Delivery.css';
 
 const Delivery = () => {
     const [highestDeliveryId, setHighestDeliveryId] = useState(0);
+    const [lastAddress, setLastAddress] = useState('');
+
+    const [inputAddress, setInputAddress] = useState('');
 
     useEffect(() => {
         const fetchAllDeliveries = async () => {
@@ -14,9 +17,18 @@ const Delivery = () => {
                     if (data.length > 0) {
                         const maxId = Math.max(...data.map(delivery => delivery.id));
                         setHighestDeliveryId(maxId);
+
+                        // Find the delivery with the maximum address
+                        const deliveryWithMaxAddress = data.reduce((maxAddressDelivery, delivery) => {
+                            return delivery.address > maxAddressDelivery.address ? delivery : maxAddressDelivery;
+                        }, data[0]);
+
+                        setLastAddress(deliveryWithMaxAddress.address);
+                        setInputAddress(deliveryWithMaxAddress.address); // Set inputAddress for editing
                     } else {
-                        // If there are no deliveries, set the highestDeliveryId to 0 or 1, depending on your server's expectations
                         setHighestDeliveryId(0);
+                        setLastAddress('');
+                        setInputAddress(''); // Set inputAddress to an empty string if there are no deliveries
                     }
                 } else {
                     console.error('Failed to fetch all deliveries:', response.statusText);
@@ -28,15 +40,15 @@ const Delivery = () => {
 
         fetchAllDeliveries();
     }, []); // Fetch all deliveries once when the component mounts
+
     const location = useLocation();
     const navigate = useNavigate();
     const { cart } = location.state || { cart: [] };
 
-    const [address, setAddress] = useState('');
     const [isAddressValid, setIsAddressValid] = useState(true);
 
     const handleOrder = () => {
-        if (address.trim() === '') {
+        if (inputAddress.trim() === '') {
             setIsAddressValid(false);
         } else {
             const userId = '1';
@@ -58,7 +70,7 @@ const Delivery = () => {
                     id: (highestDeliveryId + 1).toString(),
                     userId,
                     paymentId,
-                    address,
+                    address: inputAddress, // Use inputAddress instead of address
                     deliveryTime,
                     geoX,
                     geoY,
@@ -77,7 +89,6 @@ const Delivery = () => {
                 });
         }
     };
-
 
     const handleCancel = () => {
         navigate('/shop');
@@ -106,9 +117,9 @@ const Delivery = () => {
                         <p>Address:</p>
                         <input
                             type="text"
-                            value={address}
+                            value={inputAddress}
                             onChange={(e) => {
-                                setAddress(e.target.value);
+                                setInputAddress(e.target.value);
                                 setIsAddressValid(true);
                             }}
                         />
