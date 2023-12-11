@@ -7,6 +7,7 @@ import Login from './Login';
 import Profile from './Profile';
 import Register from './Register';
 import Delivery from './Delivery';
+import Preview from './Preview';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -15,6 +16,7 @@ root.render(
             <Routes>
                 <Route path="/" element={<Login />} />
                 <Route path="/shop" element={<Shop />} />
+                <Route path="/preview" element={<Preview />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/delivery" element={<Delivery />} />

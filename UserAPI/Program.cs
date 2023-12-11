@@ -7,11 +7,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-var salt = "ProjektSUA";
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.json");
+
+var salt = builder.Configuration["Salt"];
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -55,6 +55,9 @@ builder.Services.AddSingleton<MongoDbContext>(sp =>
     return new MongoDbContext(configuration.ConnectionString, configuration.DatabaseName);
 });
 
+builder.Services.AddAuthentication();
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -64,13 +67,18 @@ if (app.Environment.IsDevelopment())
 }
 
 // Ensure UseRouting is called before UseAuthorization
-//app.UseRouting();
+app.UseRouting();
 
 // UseCors should be placed after UseRouting and before UseAuthorization
 app.UseCors("AllowSpecificOrigin");
 
-// Add this line to include the UseAuthorization middleware
-//app.UseAuthorization();
+app.UseAuthentication(); // Must be after UseRouting()
+app.UseAuthorization(); // Must be after UseAuthentication()
+
+app.UseEndpoints(endpoints =>
+{
+    // ... endpoint configuration
+});
 
 app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext) =>
 {

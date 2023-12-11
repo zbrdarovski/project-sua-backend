@@ -8,6 +8,9 @@ function Dashboard() {
             <Link to="/shop">
                 <button>Shop</button>
             </Link>
+            <Link to="/preview">
+                <button>Preview</button>
+            </Link>
             <Link to="/profile">
                 <button>Profile</button>
             </Link>

@@ -68,7 +68,7 @@ const Register = () => {
                     return;
                 } else {
                     console.log('Registration successful');
-                    navigate('/shop');
+                    navigate('/');
                 }
             } else {
                 console.warn('Form validation failed');
