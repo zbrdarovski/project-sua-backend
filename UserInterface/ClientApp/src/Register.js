@@ -21,7 +21,7 @@ const Register = () => {
     useEffect(() => {
         const fetchAllUsers = async () => {
             try {
-                const response = await fetch('http://localhost:5293/api/users/get-all');
+                const response = await fetch('http://localhost:5293/api/users');
                 if (response.ok) {
                     const data = await response.json();
                     if (data.length > 0) {

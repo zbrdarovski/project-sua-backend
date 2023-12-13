@@ -1,15 +1,19 @@
-//Program.cs
+// Program.cs
+
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-// Inside ConfigureServices method
+
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Delivery API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "DeliveryAPI", Version = "v1" });
 
     // Define the Swagger security scheme for JWT
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -17,26 +21,51 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Please enter JWT with Bearer into field",
         Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
     });
 
     // Define the Swagger security requirement for JWT
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
         {
-            new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
+                new OpenApiSecurityScheme
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] { }
-        }
-    });
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+    // Resolve conflicting actions
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
+var salt = builder.Configuration["Salt"];
+
+// Add authentication and authorization services
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+
+builder.Services.AddAuthorization();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHealthChecks();
 
@@ -46,9 +75,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         builder =>
         {
-            builder.WithOrigins("http://localhost:44459")
+            builder.WithOrigins("http://localhost:44459") // Add your frontend URL here
                    .AllowAnyHeader()
-                   .AllowAnyMethod();
+                   .AllowAnyMethod()
+                   .AllowCredentials();
         });
 });
 
@@ -69,30 +99,24 @@ builder.Services.AddSingleton<MongoDbContext>(sp =>
     return new MongoDbContext(configuration.ConnectionString, configuration.DatabaseName);
 });
 
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Dostava API"));
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "DeliveryAPI");
+        c.RoutePrefix = "swagger"; // This sets the route prefix for Swagger UI
+    });
 }
 
-// Ensure UseRouting is called before UseAuthorization
 app.UseRouting();
-
-// UseCors should be placed after UseRouting and before UseAuthorization
 app.UseCors("AllowSpecificOrigin");
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseSession();
 
-app.UseAuthentication(); // Must be after UseRouting()
-app.UseAuthorization(); // Must be after UseAuthentication()
-
-app.UseEndpoints(endpoints =>
-{
-    // ... endpoint configuration
-});
 app.MapPost("/api/deliveries", (DeliveryCreateDto deliveryDto, [FromServices] MongoDbContext dbContext) =>
 {
     var delivery = new Delivery
@@ -158,8 +182,6 @@ app.MapDelete("/api/deliveries/{id}", (string id, [FromServices] MongoDbContext 
     return Results.Ok(new { Message = "Delivery deleted successfully" });
 }).WithName("DeleteDelivery").RequireAuthorization();
 
-// Additional CRUD Operations
-
 app.MapPut("/api/deliveries/update-coordinates/{id}", (string id, CoordinatesUpdateDto coordinatesDto, [FromServices] MongoDbContext dbContext) =>
 {
     var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
@@ -210,8 +232,5 @@ app.MapPut("/api/deliveries/update-address/{id}", (string id, UpdateAddressDto a
 }).WithName("UpdateAddress").RequireAuthorization();
 
 app.UseHealthChecks("/api/deliveries/health");
-
-// Enable CORS
-app.UseCors("AllowSpecificOrigin");
 
 app.Run();

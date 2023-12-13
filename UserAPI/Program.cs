@@ -157,8 +157,6 @@ string GenerateJwtToken(string userId, string key, string issuer, HttpContext ht
     return tokenString;
 }
 
-var token = "";
-
 app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] IConfiguration configuration, [FromServices] IHttpContextAccessor httpContextAccessor) =>
 {
     var user = dbContext.Users.Find(u => u.Username == userDto.Username).FirstOrDefault();
@@ -169,7 +167,7 @@ app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbCon
     }
 
     // Generate JWT token
-    token = GenerateJwtToken(user.Id, configuration["Jwt:Key"], configuration["Jwt:Issuer"], httpContextAccessor.HttpContext);
+    var token = GenerateJwtToken(user.Id, configuration["Jwt:Key"], configuration["Jwt:Issuer"], httpContextAccessor.HttpContext);
 
     // Return token and user ID in response
     return Results.Ok(new { Message = "Connection successful", Token = token, UserId = user.Id });
@@ -185,32 +183,6 @@ app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, 
         return Results.Unauthorized();
     }
 
-    if (string.IsNullOrWhiteSpace(token))
-    {
-        return Results.Unauthorized();
-    }
-
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var key = Encoding.ASCII.GetBytes(app.Configuration["Jwt:Key"]);
-
-    // Validate JWT token
-    try
-    {
-        tokenHandler.ValidateToken(token, new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-        }, out var validatedToken);
-    }
-    catch (Exception)
-    {
-        // Token validation failed
-        return Results.Unauthorized();
-    }
-
     // Combine the new password and salt, then hash the result
     string hashedNewPassword = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword + salt);
 
@@ -221,13 +193,13 @@ app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, 
     return Results.Ok(new { Message = "Password changed successfully" });
 }).WithName("ChangePassword").RequireAuthorization();
 
-app.MapGet("/api/users/get-all", ([FromServices] MongoDbContext dbContext) =>
+app.MapGet("/api/users", ([FromServices] MongoDbContext dbContext) =>
 {
     var users = dbContext.Users.Find(_ => true).ToList();
     return Results.Ok(users);
 }).WithName("GetAllUsers");
 
-app.MapGet("/api/users/get/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
+app.MapGet("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
 {
     var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
     if (user == null)
@@ -238,39 +210,12 @@ app.MapGet("/api/users/get/{id}", (string id, [FromServices] MongoDbContext dbCo
     return Results.Ok(user);
 }).WithName("GetUserById");
 
-app.MapPut("/api/users/put/{id}", (string id, UserUpdateDto userDto, [FromServices] MongoDbContext dbContext) =>
+app.MapPut("/api/users/{id}", (string id, UserUpdateDto userDto, [FromServices] MongoDbContext dbContext) =>
 {
-    Console.WriteLine("Evo ga: " + token);
     var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
     if (user == null)
     {
         return Results.NotFound(new { Message = "User not found" });
-    }
-
-    if (string.IsNullOrWhiteSpace(token))
-    {
-        return Results.Unauthorized();
-    }
-
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var key = Encoding.ASCII.GetBytes(app.Configuration["Jwt:Key"]);
-
-    // Validate JWT token
-    try
-    {
-        tokenHandler.ValidateToken(token, new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-        }, out var validatedToken);
-    }
-    catch (Exception)
-    {
-        // Token validation failed
-        return Results.Unauthorized();
     }
 
     user.Username = userDto.Username;
@@ -279,38 +224,12 @@ app.MapPut("/api/users/put/{id}", (string id, UserUpdateDto userDto, [FromServic
     return Results.Ok(new { Message = "User updated successfully" });
 }).WithName("UpdateUser").RequireAuthorization();
 
-app.MapDelete("/api/users/delete/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
+app.MapDelete("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
 {
     var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
     if (user == null)
     {
         return Results.NotFound(new { Message = "User not found" });
-    }
-
-    if (string.IsNullOrWhiteSpace(token))
-    {
-        return Results.Unauthorized();
-    }
-
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var key = Encoding.ASCII.GetBytes(app.Configuration["Jwt:Key"]);
-
-    // Validate JWT token
-    try
-    {
-        tokenHandler.ValidateToken(token, new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-        }, out var validatedToken);
-    }
-    catch (Exception)
-    {
-        // Token validation failed
-        return Results.Unauthorized();
     }
 
     dbContext.Users.DeleteOne(u => u.Id == id);
