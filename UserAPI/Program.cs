@@ -1,5 +1,7 @@
 // Program.cs
+
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
@@ -9,15 +11,11 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddJsonFile("appsettings.json");
-
-var salt = builder.Configuration["Salt"];
-
 builder.Services.AddEndpointsApiExplorer();
-// Inside ConfigureServices method
+
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Uporabniska avtentikacija API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "UserAPI", Version = "v1" });
 
     // Define the Swagger security scheme for JWT
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -25,25 +23,52 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Please enter JWT with Bearer into field",
         Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
     });
 
     // Define the Swagger security requirement for JWT
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
         {
-            new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
+                new OpenApiSecurityScheme
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] { }
-        }
-    });
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+    // Resolve conflicting actions
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
+
+var salt = builder.Configuration["Salt"];
+
+// Add authentication and authorization services
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+
+builder.Services.AddAuthorization();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
+builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHealthChecks();
 
@@ -77,30 +102,24 @@ builder.Services.AddSingleton<MongoDbContext>(sp =>
     return new MongoDbContext(configuration.ConnectionString, configuration.DatabaseName);
 });
 
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Uporabniska avtentikacija API"));
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "UserAPI");
+        c.RoutePrefix = "swagger"; // This sets the route prefix for Swagger UI
+    });
 }
 
-// Ensure UseRouting is called before UseAuthorization
 app.UseRouting();
-
-// UseCors should be placed after UseRouting and before UseAuthorization
 app.UseCors("AllowSpecificOrigin");
-
-app.UseAuthentication(); // Must be after UseRouting()
-app.UseAuthorization(); // Must be after UseAuthentication()
-
-app.UseEndpoints(endpoints =>
-{
-    // ... endpoint configuration
-});
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseSession();
+app.MapControllers();
 
 app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext) =>
 {
@@ -113,11 +132,10 @@ app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] 
     return Results.Ok(new { Message = "Registration successful" });
 }).WithName("Register");
 
-string GenerateJwtToken(string userId, string key, string issuer)
+string GenerateJwtToken(string userId, string key, string issuer, HttpContext httpContext)
 {
     if (userId is null || key is null || issuer is null)
     {
-        // Handle the null reference gracefully or throw an exception.
         throw new ArgumentNullException("userId, key, and issuer cannot be null.");
     }
 
@@ -136,10 +154,14 @@ string GenerateJwtToken(string userId, string key, string issuer)
     };
 
     var token = tokenHandler.CreateToken(tokenDescriptor);
-    return tokenHandler.WriteToken(token);
+    var tokenString = tokenHandler.WriteToken(token);
+
+    return tokenString;
 }
 
-app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] IConfiguration configuration) =>
+var token = "";
+
+app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] IConfiguration configuration, [FromServices] IHttpContextAccessor httpContextAccessor) =>
 {
     var user = dbContext.Users.Find(u => u.Username == userDto.Username).FirstOrDefault();
 
@@ -149,7 +171,7 @@ app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbCon
     }
 
     // Generate JWT token
-    var token = GenerateJwtToken(user.Id, configuration["Jwt:Key"], configuration["Jwt:Issuer"]);
+    token = GenerateJwtToken(user.Id, configuration["Jwt:Key"], configuration["Jwt:Issuer"], httpContextAccessor.HttpContext);
 
     // Return token and user ID in response
     return Results.Ok(new { Message = "Connection successful", Token = token, UserId = user.Id });
@@ -165,14 +187,11 @@ app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, 
         return Results.Unauthorized();
     }
 
-    // Check for JWT token in the request headers
-    var authorizationHeader = httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-    if (string.IsNullOrWhiteSpace(authorizationHeader) || !authorizationHeader.ToString().StartsWith("Bearer "))
+    if (string.IsNullOrWhiteSpace(token))
     {
         return Results.Unauthorized();
     }
 
-    var token = authorizationHeader.ToString().Substring("Bearer ".Length);
     var tokenHandler = new JwtSecurityTokenHandler();
     var key = Encoding.ASCII.GetBytes(app.Configuration["Jwt:Key"]);
 
@@ -204,13 +223,13 @@ app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, 
     return Results.Ok(new { Message = "Password changed successfully" });
 }).WithName("ChangePassword").RequireAuthorization();
 
-app.MapGet("/api/users", ([FromServices] MongoDbContext dbContext) =>
+app.MapGet("/api/users/get-all", ([FromServices] MongoDbContext dbContext) =>
 {
     var users = dbContext.Users.Find(_ => true).ToList();
     return Results.Ok(users);
 }).WithName("GetAllUsers");
 
-app.MapGet("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
+app.MapGet("/api/users/get/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
 {
     var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
     if (user == null)
@@ -221,12 +240,39 @@ app.MapGet("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContex
     return Results.Ok(user);
 }).WithName("GetUserById");
 
-app.MapPut("/api/users/{id}", (string id, UserUpdateDto userDto, [FromServices] MongoDbContext dbContext) =>
+app.MapPut("/api/users/put/{id}", (string id, UserUpdateDto userDto, [FromServices] MongoDbContext dbContext) =>
 {
+    Console.WriteLine("Evo ga: " + token);
     var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
     if (user == null)
     {
         return Results.NotFound(new { Message = "User not found" });
+    }
+
+    if (string.IsNullOrWhiteSpace(token))
+    {
+        return Results.Unauthorized();
+    }
+
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var key = Encoding.ASCII.GetBytes(app.Configuration["Jwt:Key"]);
+
+    // Validate JWT token
+    try
+    {
+        tokenHandler.ValidateToken(token, new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+        }, out var validatedToken);
+    }
+    catch (Exception)
+    {
+        // Token validation failed
+        return Results.Unauthorized();
     }
 
     user.Username = userDto.Username;
@@ -235,12 +281,38 @@ app.MapPut("/api/users/{id}", (string id, UserUpdateDto userDto, [FromServices] 
     return Results.Ok(new { Message = "User updated successfully" });
 }).WithName("UpdateUser").RequireAuthorization();
 
-app.MapDelete("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
+app.MapDelete("/api/users/delete/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
 {
     var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
     if (user == null)
     {
         return Results.NotFound(new { Message = "User not found" });
+    }
+
+    if (string.IsNullOrWhiteSpace(token))
+    {
+        return Results.Unauthorized();
+    }
+
+    var tokenHandler = new JwtSecurityTokenHandler();
+    var key = Encoding.ASCII.GetBytes(app.Configuration["Jwt:Key"]);
+
+    // Validate JWT token
+    try
+    {
+        tokenHandler.ValidateToken(token, new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+        }, out var validatedToken);
+    }
+    catch (Exception)
+    {
+        // Token validation failed
+        return Results.Unauthorized();
     }
 
     dbContext.Users.DeleteOne(u => u.Id == id);

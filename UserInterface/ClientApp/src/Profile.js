@@ -17,27 +17,33 @@ function Profile() {
 
     const handleChangePassword = async () => {
         try {
+            // Retrieve token from storage
+            const token = localStorage.getItem('token');
+            console.log(token);
+
             const response = await fetch('http://localhost:5293/api/users/change-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     username: formData.username,
                     currentPassword: formData.currentPassword,
-                    newPassword: formData.newPassword
+                    newPassword: formData.newPassword,
                 }),
             });
 
             if (!response.ok) {
                 // Handle error cases
-                console.error('Login failed:', response.statusText);
+                console.error('Password change failed:', response.statusText);
                 return;
-            } else {
-                navigate('/shop');
             }
+
+            // Assuming successful response handling
+            navigate('/shop');
         } catch (error) {
-            console.error('Login failed:', error.message);
+            console.error('Password change failed:', error.message);
         }
     };
 

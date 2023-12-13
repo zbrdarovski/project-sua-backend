@@ -9,7 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 // Inside ConfigureServices method
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Uporabniska avtentikacija API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Delivery API", Version = "v1" });
 
     // Define the Swagger security scheme for JWT
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

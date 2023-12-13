@@ -27,10 +27,27 @@ function Login() {
             });
 
             if (!response.ok) {
-                // Handle error cases
-                console.error('Login failed:', response.statusText);
+                // Handle specific error cases
+                if (response.status === 401) {
+                    console.error('Invalid username or password');
+                } else {
+                    console.error('Login failed:', response.statusText);
+                }
                 return;
-            } else navigate('/shop');
+            }
+
+            // Parse the response JSON
+            const responseBody = await response.json();
+
+            // Access Token and UserId properties directly from the parsed JSON
+            const { token, userId } = responseBody;
+
+            // Store token in localStorage or a secure storage
+            localStorage.setItem('token', token);
+            localStorage.setItem('userId', userId);
+
+            // Navigate to '/shop' or another route
+            navigate('/shop');
         } catch (error) {
             console.error('Login failed:', error.message);
         }
