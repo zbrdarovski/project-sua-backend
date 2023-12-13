@@ -3,7 +3,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 
 public class Startup
@@ -18,8 +17,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         var key = Encoding.ASCII.GetBytes(Configuration["Jwt:Key"] ?? string.Empty);
-
-        services.AddControllers();
 
         services.AddHttpContextAccessor();
 
@@ -84,29 +81,6 @@ public class Startup
             }
 
             return new MongoDbContext(mongoDbSettings.ConnectionString, mongoDbSettings.DatabaseName);
-        });
-    }
-
-    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-    {
-        if (env.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "UserAPI");
-                c.RoutePrefix = "swagger"; // This sets the route prefix for Swagger UI
-            });
-        }
-
-        app.UseRouting();
-        app.UseCors("AllowSpecificOrigin");
-        app.UseAuthentication();
-        app.UseAuthorization();
-        app.UseSession();
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapControllers();
         });
     }
 }
