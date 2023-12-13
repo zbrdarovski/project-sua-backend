@@ -7,39 +7,43 @@ const Delivery = () => {
     const [lastAddress, setLastAddress] = useState('');
 
     const [inputAddress, setInputAddress] = useState('');
+    const userId = localStorage.getItem('userId');
 
     useEffect(() => {
         const fetchAllDeliveries = async () => {
             try {
-                const response = await fetch('http://localhost:5062/api/deliveries');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.length > 0) {
-                        const maxId = Math.max(...data.map(delivery => delivery.id));
-                        setHighestDeliveryId(maxId);
+                // Fetch all deliveries to find the max ID
+                const allDeliveriesResponse = await fetch('http://localhost:5062/api/deliveries');
+                if (!allDeliveriesResponse.ok) {
+                    console.error('Failed to fetch all deliveries:', allDeliveriesResponse.statusText);
+                    return;
+                }
+                const allDeliveriesData = await allDeliveriesResponse.json();
 
-                        // Find the delivery with the maximum address
-                        const deliveryWithMaxAddress = data.reduce((maxAddressDelivery, delivery) => {
-                            return delivery.address > maxAddressDelivery.address ? delivery : maxAddressDelivery;
-                        }, data[0]);
+                if (allDeliveriesData.length > 0) {
+                    const maxId = Math.max(...allDeliveriesData.map(delivery => delivery.id));
+                    setHighestDeliveryId(maxId);
 
-                        setLastAddress(deliveryWithMaxAddress.address);
-                        setInputAddress(deliveryWithMaxAddress.address); // Set inputAddress for editing
-                    } else {
-                        setHighestDeliveryId(0);
-                        setLastAddress('');
-                        setInputAddress(''); // Set inputAddress to an empty string if there are no deliveries
-                    }
+                    // Find the delivery with the maximum address for the current user
+                    const userDeliveries = allDeliveriesData.filter(delivery => delivery.userId === userId);
+                    const deliveryWithMaxAddress = userDeliveries.reduce((maxAddressDelivery, delivery) => {
+                        return delivery.address > maxAddressDelivery.address ? delivery : maxAddressDelivery;
+                    }, userDeliveries[0] || null);
+
+                    setLastAddress(deliveryWithMaxAddress ? deliveryWithMaxAddress.address : '');
+                    setInputAddress(deliveryWithMaxAddress ? deliveryWithMaxAddress.address : ''); // Set inputAddress for editing
                 } else {
-                    console.error('Failed to fetch all deliveries:', response.statusText);
+                    setHighestDeliveryId(0);
+                    setLastAddress('');
+                    setInputAddress(''); // Set inputAddress to an empty string if there are no deliveries
                 }
             } catch (error) {
-                console.error('Failed to fetch all deliveries:', error.message);
+                console.error('Failed to fetch deliveries:', error.message);
             }
         };
 
         fetchAllDeliveries();
-    }, []); // Fetch all deliveries once when the component mounts
+    }, [userId]); // Fetch deliveries for the specific user when the component mounts or when userId changes
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -51,7 +55,6 @@ const Delivery = () => {
         if (inputAddress.trim() === '') {
             setIsAddressValid(false);
         } else {
-            const userId = '1';
             const paymentId = '1';
             const geoX = Math.random();
             const geoY = Math.random();

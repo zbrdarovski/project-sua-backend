@@ -5,18 +5,23 @@ import Dashboard from './Dashboard';
 const DeliveryList = () => {
     const [deliveries, setDeliveries] = useState([]);
 
+    const userId = localStorage.getItem('userId');
+
     useEffect(() => {
         // Fetch data from the API endpoint
-        fetch('http://localhost:5062/api/deliveries')
+        fetch('http://localhost:5062/api/deliveries/')
             .then(response => response.json())
             .then(data => {
-                // Update the state with the fetched data
-                setDeliveries(data);
+                // Filter deliveries based on userId
+                const userDeliveries = data.filter(delivery => delivery.userId === userId);
+
+                // Update the state with the filtered data
+                setDeliveries(userDeliveries);
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
             });
-    }, []); // Empty dependency array ensures that the effect runs only once, similar to componentDidMount
+    }, [userId]); // Dependency array ensures the effect runs when userId changes
 
     // Function to format the delivery time
     const formatDeliveryTime = (timeString) => {
