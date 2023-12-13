@@ -1,10 +1,10 @@
-// Shop.js
 import React, { useState } from 'react';
 import './Shop.css';
 import Dashboard from './Dashboard';
 import { useNavigate } from 'react-router-dom';
 
 const Shop = () => {
+    const [errorMessage, setErrorMessage] = useState('');
     const [cart, setCart] = useState([]);
     const [availableQuantities, setAvailableQuantities] = useState({
         1: 5,
@@ -25,11 +25,20 @@ const Shop = () => {
     const navigate = useNavigate();
 
     const handleCheckout = () => {
-        navigate('/delivery', { state: { cart: cart } });
+        if (cart.length === 0) {
+            setErrorMessage('Please fill your cart first.');
+        } else {
+            // Reset error message
+            setErrorMessage('');
+            navigate('/delivery', { state: { cart: cart } });
+        }
     };
 
     const addToCart = (product) => {
         if (availableQuantities[product.id] > 0) {
+            // Reset error message
+            setErrorMessage('');
+
             const existingItem = cart.find((item) => item.id === product.id);
 
             if (existingItem) {
@@ -48,7 +57,6 @@ const Shop = () => {
             }));
         }
     };
-
 
     const removeFromCart = (productId) => {
         const updatedCart = cart
@@ -102,10 +110,11 @@ const Shop = () => {
                 ))}
                 <p>Total Amount: ${calculateTotalAmount()}</p>
                 <div className='checkout-button'>
-                    <button onClick={handleCheckout} disabled={cart.length === 0}>
+                    <button onClick={handleCheckout}>
                         Checkout
                     </button>
                 </div>
+                {errorMessage && <p className="empty-cart-message" style={{ color: 'red' }}>{errorMessage}</p>}
             </div>
         </div>
     );

@@ -67,7 +67,6 @@ const Delivery = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    //'Authorization': `Bearer ${yourStoredJWT}`, // Replace with the actual JWT token
                 },
                 body: JSON.stringify({
                     id: (highestDeliveryId + 1).toString(),
@@ -82,7 +81,7 @@ const Delivery = () => {
                 .then(response => {
                     if (response.ok) {
                         console.log('Order placed successfully');
-                        navigate('/shop');
+                        navigate('/preview');
                     } else {
                         console.error('Failed to add delivery');
                     }

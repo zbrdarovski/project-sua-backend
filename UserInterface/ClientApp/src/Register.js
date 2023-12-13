@@ -9,11 +9,18 @@ const Register = () => {
         repeatPassword: ''
     });
 
+    const [formErrors, setFormErrors] = useState({
+        username: '',
+        password: '',
+        repeatPassword: ''
+    });
+
     const [highestUserId, setHighestUserId] = useState(0);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+        setFormErrors({ ...formErrors, [name]: '' }); // Clear the error when user starts typing
     };
 
     const navigate = useNavigate();
@@ -28,7 +35,6 @@ const Register = () => {
                         const maxId = Math.max(...data.map(user => user.id));
                         setHighestUserId(maxId);
                     } else {
-                        // If there are no users, set the highestUserId to 0 or 1, depending on your server's expectations
                         setHighestUserId(0);
                     }
                 } else {
@@ -45,33 +51,42 @@ const Register = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
 
-        try {
-            if (
-                formData.username.length >= 6 &&
-                formData.password.length >= 6 &&
-                formData.password === formData.repeatPassword
-            ) {
-                const response = await fetch('http://localhost:5293/api/users/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        id: (highestUserId + 1).toString(),
-                        username: formData.username,
-                        password: formData.password
-                    }),
-                });
+        // Validate form fields
+        let errors = {};
+        if (formData.username.length < 6) {
+            errors.username = 'Username must be at least 6 characters';
+        }
+        if (formData.password.length < 6) {
+            errors.password = 'Password must be at least 6 characters';
+        }
+        if (formData.password !== formData.repeatPassword) {
+            errors.repeatPassword = 'Passwords do not match';
+        }
 
-                if (!response.ok) {
-                    console.error('Registration failed:', response.statusText);
-                    return;
-                } else {
-                    console.log('Registration successful');
-                    navigate('/');
-                }
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:5293/api/users/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: (highestUserId + 1).toString(),
+                    username: formData.username,
+                    password: formData.password
+                }),
+            });
+
+            if (!response.ok) {
+                console.error('Registration failed:', response.statusText);
+                return;
             } else {
-                console.warn('Form validation failed');
+                console.log('Registration successful');
+                navigate('/');
             }
         } catch (error) {
             console.error('Registration failed:', error.message);
@@ -93,6 +108,7 @@ const Register = () => {
                     value={formData.username}
                     onChange={handleInputChange}
                 />
+                {formErrors.username && <div className="error">{formErrors.username}</div>}
                 <input
                     type="password"
                     placeholder="Enter password"
@@ -100,6 +116,7 @@ const Register = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                 />
+                {formErrors.password && <div className="error">{formErrors.password}</div>}
                 <input
                     type="password"
                     placeholder="Repeat password"
@@ -107,6 +124,7 @@ const Register = () => {
                     value={formData.repeatPassword}
                     onChange={handleInputChange}
                 />
+                {formErrors.repeatPassword && <div className="error">{formErrors.repeatPassword}</div>}
                 <button type="submit">Register</button>
             </form>
             <p onClick={handleClick} style={{ cursor: 'pointer' }}>

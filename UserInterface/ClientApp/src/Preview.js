@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import './Preview.css';
 import Dashboard from './Dashboard';
+import { Link } from 'react-router-dom';
 
 const DeliveryList = () => {
     const [deliveries, setDeliveries] = useState([]);
@@ -43,18 +44,28 @@ const DeliveryList = () => {
             <Dashboard />
             <div className='preview-container'>
                 <h2 className='header'>Deliveries</h2>
-                <ul>
-                    {deliveries.map(item => (
-                        <li key={item.id} className='deliveryItem'>
-                            <p>User ID: {item.userId}</p>
-                            <p>Payment ID: {item.paymentId}</p>
-                            <p>Address: {item.address}</p>
-                            <p>Delivery Time: {formatDeliveryTime(item.deliveryTime)}</p>
-                            <p>GeoX: {item.geoX}</p>
-                            <p>GeoY: {item.geoY}</p>
-                        </li>
-                    ))}
-                </ul>
+                {deliveries.length === 0 ? (
+                    <p>
+                        No deliveries present. Click{' '}
+                        <Link to='/shop' className='shop-link'>
+                             here
+                        </Link>
+                        {' '}to check our shop.
+                    </p>
+                ) : (
+                    <ul>
+                        {deliveries.map((item) => (
+                            <li key={item.id} className='deliveryItem'>
+                                <p>User ID: {item.userId}</p>
+                                <p>Payment ID: {item.paymentId}</p>
+                                <p>Address: {item.address}</p>
+                                <p>Delivery Time: {formatDeliveryTime(item.deliveryTime)}</p>
+                                <p>GeoX: {item.geoX}</p>
+                                <p>GeoY: {item.geoY}</p>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
         </div>
     );

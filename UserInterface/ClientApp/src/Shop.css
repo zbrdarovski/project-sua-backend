@@ -50,3 +50,9 @@
     .checkout-button button:hover {
         background-color: #5f8575;
     }
+
+.empty-cart-message {
+    color: red;
+    font-size: 12px; /* Adjust the font size as needed */
+    margin-top: 4px; /* Add some space above the error message */
+}

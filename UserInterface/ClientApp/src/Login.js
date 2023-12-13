@@ -4,16 +4,33 @@ import { useNavigate } from 'react-router-dom';
 
 function Login() {
     const [formData, setFormData] = useState({ username: '', password: '' });
+    const [formErrors, setFormErrors] = useState({ username: '', password: '' });
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+        setFormErrors({ ...formErrors, [name]: '' }); // Clear the error when user starts typing
     };
 
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
+
+        // Validate form fields
+        let errors = {};
+        if (formData.username.trim() === '') {
+            errors.username = 'Username is required';
+        }
+        if (formData.password.trim() === '') {
+            errors.password = 'Password is required';
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            return;
+        }
+
         try {
             const response = await fetch('http://localhost:5293/api/users/login', {
                 method: 'POST',
@@ -29,7 +46,7 @@ function Login() {
             if (!response.ok) {
                 // Handle specific error cases
                 if (response.status === 401) {
-                    console.error('Invalid username or password');
+                    setFormErrors({ ...formErrors, username: 'Invalid username or password' });
                 } else {
                     console.error('Login failed:', response.statusText);
                 }
@@ -60,24 +77,24 @@ function Login() {
     return (
         <div className='container'>
             <h2>Login</h2>
-            <form onSubmit={handleInputChange}>
+            <form onSubmit={handleLogin}>
                 <input
                     type="text"
                     name="username"
                     placeholder="Username"
                     value={formData.username}
                     onChange={handleInputChange}
-                    autoComplete={"on"}
                 />
+                {formErrors.username && <div className="error">{formErrors.username}</div>}
                 <input
                     type="password"
                     name="password"
                     placeholder="Password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    autoComplete={"off"}
                 />
-                <button onClick={handleLogin}>Login</button>
+                {formErrors.password && <div className="error">{formErrors.password}</div>}
+                <button type="submit">Login</button>
             </form>
             <p onClick={handleClick} style={{ cursor: 'pointer' }}>
                 Register

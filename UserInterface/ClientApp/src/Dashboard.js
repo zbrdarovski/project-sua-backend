@@ -1,8 +1,19 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 function Dashboard() {
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        // Clear relevant items from localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+
+        // Redirect to the login page or another appropriate route
+        navigate('/');
+    };
+
     return (
         <div className="dashboard">
             <Link to="/shop">
@@ -14,9 +25,7 @@ function Dashboard() {
             <Link to="/profile">
                 <button>Profile</button>
             </Link>
-            <Link to="/">
-                <button>Logout</button>
-            </Link>
+            <button onClick={handleLogout}>Logout</button>
         </div>
     );
 }

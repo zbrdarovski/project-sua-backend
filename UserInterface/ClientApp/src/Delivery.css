@@ -30,9 +30,9 @@
 }
 
 .validation-message {
-    color: #dc3545;
-    font-size: 0.8rem;
-    margin-bottom: 5px;
+    color: red;
+    font-size: 12px; /* Adjust the font size as needed */
+    margin-top: 4px; /* Add some space above the error message */
 }
 
 .button-container {
