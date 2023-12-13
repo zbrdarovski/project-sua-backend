@@ -85,6 +85,18 @@ namespace CartPaymentAPI
             await RecalculateCartAmountAsync(cartId);
         }
 
+        public async Task<List<Payment>> GetPaymentsByUserIdAsync(string userId)
+        {
+            var payments = await _paymentCollection.Find(payment => payment.UserId == userId).ToListAsync();
+            return payments;
+        }
+
+        public async Task<List<Payment>> GetAllPaymentsAsync()
+        {
+            var payments = await _paymentCollection.Find(_ => true).ToListAsync();
+            return payments;
+        }
+
         public async Task AddPaymentAsync(Payment payment)
         {
             // Check if InventoryItems list is not empty and CartAmount to pay is not 0

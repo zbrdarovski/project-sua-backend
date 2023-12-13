@@ -1,5 +1,6 @@
 using CartPaymentAPI;
 using CartPaymentAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,10 +16,18 @@ namespace CartAPI.Controllers
         private readonly ILogger<CartPaymentController> _logger;
         private readonly CartPaymentRepository _cartPaymentRepository;
 
+        /*
         public CartPaymentController(ILogger<CartPaymentController> logger, IConfiguration configuration)
         {
             _logger = logger;
             _cartPaymentRepository = new CartPaymentRepository(configuration);
+        }
+        */
+
+        public CartPaymentController(ILogger<CartPaymentController> logger, CartPaymentRepository cartPaymentRepository)
+        {
+            _logger = logger;
+            _cartPaymentRepository = cartPaymentRepository;
         }
 
         // Cart Endpoints
@@ -93,6 +102,34 @@ namespace CartAPI.Controllers
         }
 
         // Payment Endpoints
+
+        [HttpGet("payments/{userId}", Name = "GetPaymentsByUserId")]
+        public async Task<ActionResult<IEnumerable<Payment>>> GetPaymentsByUserId(string userId)
+        {
+            try
+            {
+                var payments = await _cartPaymentRepository.GetPaymentsByUserIdAsync(userId);
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error retrieving payments: {ex.Message}");
+            }
+        }
+
+        [HttpGet("payments", Name = "GetAllPayments")]
+        public async Task<ActionResult<IEnumerable<Payment>>> GetAllPayments()
+        {
+            try
+            {
+                var payments = await _cartPaymentRepository.GetAllPaymentsAsync();
+                return Ok(payments);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error retrieving payments: {ex.Message}");
+            }
+        }
 
         [HttpPost("payment/add", Name = "AddPayment")]
         public async Task<IActionResult> AddPaymentAsync([FromBody] Payment payment)

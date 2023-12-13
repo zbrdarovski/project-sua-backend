@@ -10,10 +10,9 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["CommentsRatingsAPI/CommentsRatingsAPI.csproj", "CommentsRatingsAPI/"]
-RUN dotnet restore "CommentsRatingsAPI/CommentsRatingsAPI.csproj"
+COPY ["CommentsRatingsAPI.csproj", "./"]
+RUN dotnet restore "CommentsRatingsAPI.csproj"
 COPY . .
-WORKDIR "/src/CommentsRatingsAPI"
 RUN dotnet build "CommentsRatingsAPI.csproj" -c Release -o /app/build
 
 FROM build AS publish

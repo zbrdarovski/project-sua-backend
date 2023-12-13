@@ -1,4 +1,5 @@
 using CommentsRatingsAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
@@ -13,10 +14,10 @@ namespace CommentsRatingsAPI.Controllers
         private readonly ILogger<CommentsRatingsController> _logger;
         private readonly CommentsRatingsRepository _commentsRatingsRepository;
 
-        public CommentsRatingsController(ILogger<CommentsRatingsController> logger, IConfiguration configuration)
+        public CommentsRatingsController(ILogger<CommentsRatingsController> logger, CommentsRatingsRepository commentsRatingsRepository)
         {
             _logger = logger;
-            _commentsRatingsRepository = new CommentsRatingsRepository(configuration);
+            _commentsRatingsRepository = commentsRatingsRepository;
         }
 
         // Comments Endpoints

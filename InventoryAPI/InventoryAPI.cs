@@ -1,4 +1,4 @@
-using CartPaymentAPI;
+using InventoryAPI;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -7,13 +7,17 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(5000); // Listen for HTTP traffic on port 5000
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "CartPaymentAPI", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "InventoryAPI", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -39,6 +43,7 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+
 });
 
 var jwtSecret = builder.Configuration.GetValue<string>("JWT_SECRET");
@@ -62,39 +67,24 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-//var mongoDbConnectionString = builder.Configuration.GetValue<string>("MONGODB_CONNECTION_STRING");
+var mongoDbConnectionString = builder.Configuration.GetValue<string>("MONGODB_CONNECTION_STRING");
 
-builder.Services.AddSingleton<CartPaymentRepository>(serviceProvider =>
+builder.Services.AddSingleton<InventoryRepository>(serviceProvider =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-    return new CartPaymentRepository(configuration);
+    return new InventoryRepository(configuration);
 });
 
 builder.Services.AddLogging();
 
-// Configure CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigin",
-        builder =>
-        {
-            builder.WithOrigins("http://localhost:44459/") // Add your frontend URL here
-                   .AllowAnyHeader()
-                   .AllowAnyMethod();
-        });
-});
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CartPaymentAPI");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "InventoryAPI");
     });
-}
 
 app.UseRouting();
 app.UseAuthentication();

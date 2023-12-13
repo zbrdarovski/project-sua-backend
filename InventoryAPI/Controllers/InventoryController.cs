@@ -1,4 +1,5 @@
 using InventoryAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
@@ -12,12 +13,21 @@ namespace InventoryAPI.Controllers
         private readonly InventoryRepository _inventoryRepository;
         private readonly ILogger<InventoryController> _logger;
 
+        /*
         public InventoryController(ILogger<InventoryController> logger, IConfiguration configuration)
         {
             _logger = logger;
             _inventoryRepository = new InventoryRepository(configuration);
         }
+        */
 
+        public InventoryController(ILogger<InventoryController> logger, InventoryRepository inventoryRepository)
+        {
+            _logger = logger;
+            _inventoryRepository = inventoryRepository;
+        }
+
+        // With name probaj za poimenovanje
         [HttpGet(Name = "GetAllItems")]
         public async Task<IEnumerable<Inventory>> GetAllItems()
         {
@@ -38,6 +48,7 @@ namespace InventoryAPI.Controllers
             return item;
         }
 
+        [Authorize]
         [HttpPost(Name = "AddItem")]
         public async Task<IActionResult> AddItem([FromBody] Inventory item)
         {
@@ -45,6 +56,7 @@ namespace InventoryAPI.Controllers
             return CreatedAtRoute("GetItemById", new { itemId = item.Id.ToString() }, item);
         }
 
+        [Authorize]
         [HttpPut("{itemId}", Name = "UpdateItem")]
         public async Task<IActionResult> UpdateItem(string itemId, [FromBody] Inventory updatedItem)
         {
@@ -61,6 +73,7 @@ namespace InventoryAPI.Controllers
             return Ok(updatedItem);
         }
 
+        [Authorize]
         [HttpDelete("{itemId}", Name = "DeleteItem")]
         public async Task<IActionResult> DeleteItem(string itemId)
         {
@@ -104,6 +117,7 @@ namespace InventoryAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("{itemId}/changeprice/{newPrice}", Name = "ChangeItemPriceById")]
         public async Task<IActionResult> ChangePrice(string itemId, double newPrice)
         {
