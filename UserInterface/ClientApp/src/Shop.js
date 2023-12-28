@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Shop.css';
 import Dashboard from './Dashboard';
 import { useNavigate } from 'react-router-dom';
@@ -6,23 +6,43 @@ import { useNavigate } from 'react-router-dom';
 const Shop = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [cart, setCart] = useState([]);
-    const [availableQuantities, setAvailableQuantities] = useState({
-        1: 5,
-        2: 5,
-        3: 5,
-        4: 5,
-        5: 5,
-    });
-
-    const products = [
-        { id: 1, name: 'Moon Star Shoes', price: 19900000 },
-        { id: 2, name: 'Passion Diamond Shoe', price: 17000000 },
-        { id: 3, name: 'Debbie Wingham Heels', price: 15100000 },
-        { id: 4, name: '1998 NBA Finals Game 2 Air Jordan 13s', price: 2200000 },
-        { id: 5, name: 'Harry Winston Runy Slippers', price: 3010000 },
-    ];
+    const [availableQuantities, setAvailableQuantities] = useState({});
+    const [products, setProducts] = useState([]);
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchAllShoes = async () => {
+            try {
+                const allShoesResponse = await fetch('http://localhost:5000/Inventory'); // Use the local proxy
+                if (!allShoesResponse.ok) {
+                    console.error('Failed to fetch all shoes:', allShoesResponse.statusText);
+                    const errorText = await allShoesResponse.text();
+                    console.error('Response text:', errorText);
+                    setErrorMessage('Failed to fetch shoes. See console for details.');
+                    return;
+                }
+                const allShoesData = await allShoesResponse.json();
+
+                if (allShoesData.length > 0) {
+                    const filteredShoes = allShoesData.filter((shoe) => shoe.id >= 3);
+                    setProducts(filteredShoes);
+
+                    // Assuming there is a 'quantity' property in your shoe object
+                    const quantities = {};
+                    filteredShoes.forEach((shoe) => {
+                        quantities[shoe.id] = shoe.quantity;
+                    });
+                    setAvailableQuantities(quantities);
+                }
+            } catch (error) {
+                console.error('Failed to fetch shoes:', error.message);
+                setErrorMessage('Failed to fetch shoes. See console for details.');
+            }
+        };
+
+        fetchAllShoes();
+    }, []);
 
     const handleCheckout = () => {
         if (cart.length === 0) {

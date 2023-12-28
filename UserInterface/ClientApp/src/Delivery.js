@@ -12,7 +12,6 @@ const Delivery = () => {
     useEffect(() => {
         const fetchAllDeliveries = async () => {
             try {
-                // Fetch all deliveries to find the max ID
                 const allDeliveriesResponse = await fetch('http://localhost:5062/api/deliveries');
                 if (!allDeliveriesResponse.ok) {
                     console.error('Failed to fetch all deliveries:', allDeliveriesResponse.statusText);
@@ -24,18 +23,17 @@ const Delivery = () => {
                     const maxId = Math.max(...allDeliveriesData.map(delivery => delivery.id));
                     setHighestDeliveryId(maxId);
 
-                    // Find the delivery with the maximum address for the current user
                     const userDeliveries = allDeliveriesData.filter(delivery => delivery.userId === userId);
                     const deliveryWithMaxAddress = userDeliveries.reduce((maxAddressDelivery, delivery) => {
                         return delivery.address > maxAddressDelivery.address ? delivery : maxAddressDelivery;
                     }, userDeliveries[0] || null);
 
                     setLastAddress(deliveryWithMaxAddress ? deliveryWithMaxAddress.address : '');
-                    setInputAddress(deliveryWithMaxAddress ? deliveryWithMaxAddress.address : ''); // Set inputAddress for editing
+                    setInputAddress(deliveryWithMaxAddress ? deliveryWithMaxAddress.address : '');
                 } else {
                     setHighestDeliveryId(0);
                     setLastAddress('');
-                    setInputAddress(''); // Set inputAddress to an empty string if there are no deliveries
+                    setInputAddress('');
                 }
             } catch (error) {
                 console.error('Failed to fetch deliveries:', error.message);
@@ -43,7 +41,7 @@ const Delivery = () => {
         };
 
         fetchAllDeliveries();
-    }, [userId]); // Fetch deliveries for the specific user when the component mounts or when userId changes
+    }, [userId]);
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -51,44 +49,69 @@ const Delivery = () => {
 
     const [isAddressValid, setIsAddressValid] = useState(true);
 
-    const handleOrder = () => {
+    const handleOrder = async () => {
         if (inputAddress.trim() === '') {
             setIsAddressValid(false);
         } else {
-            const paymentId = '1';
-            const geoX = Math.random();
-            const geoY = Math.random();
+            try {
+                const geoX = Math.random();
+                const geoY = Math.random();
+                const deliveryTime = new Date().toISOString();
 
-            // Current time for deliveryTime
-            const deliveryTime = new Date().toISOString();
-
-            // Make a request to add a delivery
-            fetch('http://localhost:5062/api/deliveries', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    id: (highestDeliveryId + 1).toString(),
-                    userId,
-                    paymentId,
-                    address: inputAddress, // Use inputAddress instead of address
-                    deliveryTime,
-                    geoX,
-                    geoY,
-                }),
-            })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('Order placed successfully');
-                        navigate('/preview');
-                    } else {
-                        console.error('Failed to add delivery');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+                const response = await fetch('http://localhost:5062/api/deliveries', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: (highestDeliveryId + 1).toString(),
+                        userId,
+                        paymentId: (highestDeliveryId + 1).toString(),
+                        address: inputAddress,
+                        deliveryTime,
+                        geoX,
+                        geoY,
+                    }),
                 });
+
+                if (response.ok) {
+
+                    for (const item of cart) {
+                        const inventoryUpdateResponse = await fetch(`http://localhost:5000/Inventory/${item.id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            },
+                            body: JSON.stringify({
+                                id: item.id,
+                                price: item.price,
+                                name: item.name,
+                                color: item.color,
+                                size: item.size,
+                                description: item.description,
+                                image: item.image,
+                                quantity: item.quantity - item.amount,
+                                comments: item.comments,
+                                ratings: item.ratings,
+                            }),
+                        });
+
+                        if (!inventoryUpdateResponse.ok) {
+                            console.error(`Failed to update inventory for item ${item.id}`);
+                            navigate('/shop');
+                            return;
+                        }
+                    }
+
+                    console.log('Order placed successfully');
+                    navigate('/preview');
+                } else {
+                    console.error('Failed to add delivery');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
     };
 
