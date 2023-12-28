@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-
 public class Startup
 {
     public Startup(IConfiguration configuration)
@@ -81,6 +80,13 @@ public class Startup
             }
 
             return new MongoDbContext(mongoDbSettings.ConnectionString, mongoDbSettings.DatabaseName);
+        });
+
+        // Add logging services
+        services.AddLogging(loggingBuilder =>
+        {
+            // Configure console logging
+            loggingBuilder.AddConsole();
         });
     }
 }

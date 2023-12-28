@@ -72,15 +72,16 @@ builder.Services.AddSingleton<CartPaymentRepository>(serviceProvider =>
 
 builder.Services.AddLogging();
 
-// Configure CORS
+// Add CORS services
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
         builder =>
         {
-            builder.WithOrigins("http://localhost:44459/") // Add your frontend URL here
+            builder.WithOrigins("http://localhost:44459") // Add your frontend URL here
                    .AllowAnyHeader()
-                   .AllowAnyMethod();
+                   .AllowAnyMethod()
+                   .AllowCredentials();
         });
 });
 
@@ -97,6 +98,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
 

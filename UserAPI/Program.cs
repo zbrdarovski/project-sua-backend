@@ -1,5 +1,3 @@
-// Program.cs
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -10,6 +8,13 @@ using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add logging services
+builder.Services.AddLogging(loggingBuilder =>
+{
+    loggingBuilder.AddConsole();
+    // You can add other logging providers here
+});
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -29,19 +34,19 @@ builder.Services.AddSwaggerGen(c =>
 
     // Define the Swagger security requirement for JWT
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
         {
+            new OpenApiSecurityScheme
             {
-                new OpenApiSecurityScheme
+                Reference = new OpenApiReference
                 {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
     // Resolve conflicting actions
     c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
@@ -119,15 +124,25 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
 
-app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext) =>
+app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    // Combine the password and salt, then hash the result
-    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password + salt);
+    try
+    {
+        // Combine the password and salt, then hash the result
+        string hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password + salt);
 
-    var user = new User { Id = userDto.Id, Username = userDto.Username, Password = hashedPassword };
-    dbContext.Users.InsertOne(user);
+        var user = new User { Id = userDto.Id, Username = userDto.Username, Password = hashedPassword };
+        dbContext.Users.InsertOne(user);
 
-    return Results.Ok(new { Message = "Registration successful" });
+        logger.LogInformation("User registered successfully: {UserId}", user.Id);
+
+        return Results.Ok(new { Message = "Registration successful" });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error registering user");
+        return Results.BadRequest(new { Message = "Error registering user" });
+    }
 }).WithName("Register");
 
 string GenerateJwtToken(string userId, string key, string issuer, HttpContext httpContext)
@@ -157,12 +172,13 @@ string GenerateJwtToken(string userId, string key, string issuer, HttpContext ht
     return tokenString;
 }
 
-app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] IConfiguration configuration, [FromServices] IHttpContextAccessor httpContextAccessor) =>
+app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] IConfiguration configuration, [FromServices] IHttpContextAccessor httpContextAccessor, [FromServices] ILogger<Program> logger) =>
 {
     var user = dbContext.Users.Find(u => u.Username == userDto.Username).FirstOrDefault();
 
     if (user == null || !BCrypt.Net.BCrypt.Verify(userDto.Password + salt, user.Password))
     {
+        logger.LogWarning("Invalid login attempt for user: {Username}", userDto.Username);
         return Results.Unauthorized();
     }
 
@@ -174,12 +190,13 @@ app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbCon
 }).WithName("Login");
 
 
-app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, [FromServices] MongoDbContext dbContext, [FromServices] IHttpContextAccessor httpContextAccessor) =>
+app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, [FromServices] MongoDbContext dbContext, [FromServices] IHttpContextAccessor httpContextAccessor, [FromServices] ILogger<Program> logger) =>
 {
     var user = dbContext.Users.Find(u => u.Username == changePasswordDto.Username).FirstOrDefault();
 
     if (user == null || !BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword + salt, user.Password))
     {
+        logger.LogWarning("Invalid password change attempt for user: {Username}", changePasswordDto.Username);
         return Results.Unauthorized();
     }
 
@@ -190,62 +207,108 @@ app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, 
 
     dbContext.Users.ReplaceOne(u => u.Id == user.Id, user);
 
+    logger.LogInformation("Password changed successfully for user: {Username}", user.Username);
+
     return Results.Ok(new { Message = "Password changed successfully" });
 }).WithName("ChangePassword").RequireAuthorization();
 
-app.MapGet("/api/users", ([FromServices] MongoDbContext dbContext) =>
+app.MapGet("/api/users", ([FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var users = dbContext.Users.Find(_ => true).ToList();
-    return Results.Ok(users);
+    try
+    {
+        var users = dbContext.Users.Find(_ => true).ToList();
+        return Results.Ok(users);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error retrieving users");
+        return Results.BadRequest(new { Message = "Error retrieving users" });
+    }
 }).WithName("GetAllUsers");
 
-app.MapGet("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
+app.MapGet("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
-    if (user == null)
+    try
     {
-        return Results.NotFound(new { Message = "User not found" });
-    }
+        var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
+        if (user == null)
+        {
+            return Results.NotFound(new { Message = "User not found" });
+        }
 
-    return Results.Ok(user);
+        return Results.Ok(user);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error retrieving user by ID");
+        return Results.BadRequest(new { Message = "Error retrieving user by ID" });
+    }
 }).WithName("GetUserById");
 
-app.MapPut("/api/users/{id}", (string id, UserUpdateDto userDto, [FromServices] MongoDbContext dbContext) =>
+app.MapPut("/api/users/{id}", (string id, UserUpdateDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
-    if (user == null)
+    try
     {
-        return Results.NotFound(new { Message = "User not found" });
+        var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
+        if (user == null)
+        {
+            return Results.NotFound(new { Message = "User not found" });
+        }
+
+        user.Username = userDto.Username;
+        dbContext.Users.ReplaceOne(u => u.Id == id, user);
+
+        logger.LogInformation("User updated successfully: {UserId}", user.Id);
+
+        return Results.Ok(new { Message = "User updated successfully" });
     }
-
-    user.Username = userDto.Username;
-    dbContext.Users.ReplaceOne(u => u.Id == id, user);
-
-    return Results.Ok(new { Message = "User updated successfully" });
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error updating user");
+        return Results.BadRequest(new { Message = "Error updating user" });
+    }
 }).WithName("UpdateUser").RequireAuthorization();
 
-app.MapDelete("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
+app.MapDelete("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
-    if (user == null)
+    try
     {
-        return Results.NotFound(new { Message = "User not found" });
+        var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
+        if (user == null)
+        {
+            return Results.NotFound(new { Message = "User not found" });
+        }
+
+        dbContext.Users.DeleteOne(u => u.Id == id);
+
+        logger.LogInformation("User deleted successfully: {UserId}", user.Id);
+
+        return Results.Ok(new { Message = "User deleted successfully" });
     }
-
-    dbContext.Users.DeleteOne(u => u.Id == id);
-
-    return Results.Ok(new { Message = "User deleted successfully" });
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error deleting user");
+        return Results.BadRequest(new { Message = "Error deleting user" });
+    }
 }).WithName("DeleteUser").RequireAuthorization();
 
-app.MapGet("/api/users/username/{username}", (string username, [FromServices] MongoDbContext dbContext) =>
+app.MapGet("/api/users/username/{username}", (string username, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var user = dbContext.Users.Find(u => u.Username == username).FirstOrDefault();
-    if (user == null)
+    try
     {
-        return Results.NotFound(new { Message = "User not found" });
-    }
+        var user = dbContext.Users.Find(u => u.Username == username).FirstOrDefault();
+        if (user == null)
+        {
+            return Results.NotFound(new { Message = "User not found" });
+        }
 
-    return Results.Ok(user);
+        return Results.Ok(user);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error retrieving user by username");
+        return Results.BadRequest(new { Message = "Error retrieving user by username" });
+    }
 }).WithName("GetUserByUsername");
 
 app.UseHealthChecks("/api/users/health");

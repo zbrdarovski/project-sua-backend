@@ -79,6 +79,11 @@ public class Startup
         });
         services.AddHealthChecks();
 
-        
+        // Add logging services
+        services.AddLogging(loggingBuilder =>
+        {
+            // Configure console logging
+            loggingBuilder.AddConsole();
+        });
     }
 }

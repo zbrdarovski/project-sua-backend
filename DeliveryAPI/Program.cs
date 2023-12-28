@@ -1,5 +1,3 @@
-// Program.cs
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -8,6 +6,13 @@ using MongoDB.Driver;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add logging services
+builder.Services.AddLogging(loggingBuilder =>
+{
+    loggingBuilder.AddConsole();
+    // You can add other logging providers here
+});
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -27,19 +32,19 @@ builder.Services.AddSwaggerGen(c =>
 
     // Define the Swagger security requirement for JWT
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
         {
+            new OpenApiSecurityScheme
             {
-                new OpenApiSecurityScheme
+                Reference = new OpenApiReference
                 {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
     // Resolve conflicting actions
     c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
@@ -117,118 +122,195 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
 
-app.MapPost("/api/deliveries", (DeliveryCreateDto deliveryDto, [FromServices] MongoDbContext dbContext) =>
+app.MapPost("/api/deliveries", (DeliveryCreateDto deliveryDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var delivery = new Delivery
+    try
     {
-        Id = deliveryDto.Id,
-        UserId = deliveryDto.UserId,
-        PaymentId = deliveryDto.PaymentId,
-        Address = deliveryDto.Address,
-        DeliveryTime = deliveryDto.DeliveryTime,
-        GeoX = deliveryDto.GeoX,
-        GeoY = deliveryDto.GeoY
-    };
+        var delivery = new Delivery
+        {
+            Id = deliveryDto.Id,
+            UserId = deliveryDto.UserId,
+            PaymentId = deliveryDto.PaymentId,
+            Address = deliveryDto.Address,
+            DeliveryTime = deliveryDto.DeliveryTime,
+            GeoX = deliveryDto.GeoX,
+            GeoY = deliveryDto.GeoY
+        };
 
-    dbContext.Deliveries.InsertOne(delivery);
-    return Results.Ok(new { Message = "Delivery added successfully" });
+        dbContext.Deliveries.InsertOne(delivery);
+
+        logger.LogInformation("Delivery added successfully: {DeliveryId}", delivery.Id);
+
+        return Results.Ok(new { Message = "Delivery added successfully" });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error adding delivery");
+        return Results.BadRequest(new { Message = "Error adding delivery" });
+    }
 }).WithName("AddDelivery");
 
-app.MapGet("/api/deliveries", ([FromServices] MongoDbContext dbContext) =>
+app.MapGet("/api/deliveries", ([FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var deliveries = dbContext.Deliveries.Find(_ => true).ToList();
-    return Results.Ok(deliveries);
+    try
+    {
+        var deliveries = dbContext.Deliveries.Find(_ => true).ToList();
+        return Results.Ok(deliveries);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error retrieving deliveries");
+        return Results.BadRequest(new { Message = "Error retrieving deliveries" });
+    }
 }).WithName("GetAllDeliveries");
 
-app.MapGet("/api/deliveries/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
+app.MapGet("/api/deliveries/{id}", (string id, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
-    if (delivery == null)
+    try
     {
-        return Results.NotFound(new { Message = "Delivery not found" });
-    }
+        var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
+        if (delivery == null)
+        {
+            return Results.NotFound(new { Message = "Delivery not found" });
+        }
 
-    return Results.Ok(delivery);
+        return Results.Ok(delivery);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error retrieving delivery by ID");
+        return Results.BadRequest(new { Message = "Error retrieving delivery by ID" });
+    }
 }).WithName("GetDeliveryById");
 
-app.MapPut("/api/deliveries/{id}", (string id, DeliveryUpdateDto deliveryDto, [FromServices] MongoDbContext dbContext) =>
+app.MapPut("/api/deliveries/{id}", (string id, DeliveryUpdateDto deliveryDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
-
-    if (delivery == null)
+    try
     {
-        return Results.NotFound(new { Message = "Delivery not found" });
+        var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
+
+        if (delivery == null)
+        {
+            return Results.NotFound(new { Message = "Delivery not found" });
+        }
+
+        delivery.Address = deliveryDto.Address;
+        delivery.GeoX = deliveryDto.GeoX;
+        delivery.GeoY = deliveryDto.GeoY;
+
+        dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
+
+        logger.LogInformation("Delivery updated successfully: {DeliveryId}", delivery.Id);
+
+        return Results.Ok(new { Message = "Delivery updated successfully" });
     }
-
-    delivery.Address = deliveryDto.Address;
-    delivery.GeoX = deliveryDto.GeoX;
-    delivery.GeoY = deliveryDto.GeoY;
-
-    dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
-
-    return Results.Ok(new { Message = "Delivery updated successfully" });
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error updating delivery");
+        return Results.BadRequest(new { Message = "Error updating delivery" });
+    }
 }).WithName("UpdateDelivery").RequireAuthorization();
 
-app.MapDelete("/api/deliveries/{id}", (string id, [FromServices] MongoDbContext dbContext) =>
+app.MapDelete("/api/deliveries/{id}", (string id, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
-    if (delivery == null)
+    try
     {
-        return Results.NotFound(new { Message = "Delivery not found" });
+        var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
+        if (delivery == null)
+        {
+            return Results.NotFound(new { Message = "Delivery not found" });
+        }
+
+        dbContext.Deliveries.DeleteOne(d => d.Id == id);
+
+        logger.LogInformation("Delivery deleted successfully: {DeliveryId}", delivery.Id);
+
+        return Results.Ok(new { Message = "Delivery deleted successfully" });
     }
-
-    dbContext.Deliveries.DeleteOne(d => d.Id == id);
-
-    return Results.Ok(new { Message = "Delivery deleted successfully" });
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error deleting delivery");
+        return Results.BadRequest(new { Message = "Error deleting delivery" });
+    }
 }).WithName("DeleteDelivery").RequireAuthorization();
 
-app.MapPut("/api/deliveries/update-coordinates/{id}", (string id, CoordinatesUpdateDto coordinatesDto, [FromServices] MongoDbContext dbContext) =>
+app.MapPut("/api/deliveries/update-coordinates/{id}", (string id, CoordinatesUpdateDto coordinatesDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
-
-    if (delivery == null)
+    try
     {
-        return Results.NotFound(new { Message = "Delivery not found" });
+        var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
+
+        if (delivery == null)
+        {
+            return Results.NotFound(new { Message = "Delivery not found" });
+        }
+
+        delivery.GeoX = coordinatesDto.GeoX;
+        delivery.GeoY = coordinatesDto.GeoY;
+
+        dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
+
+        logger.LogInformation("Coordinates updated successfully for delivery: {DeliveryId}", delivery.Id);
+
+        return Results.Ok(new { Message = "Coordinates updated successfully" });
     }
-
-    delivery.GeoX = coordinatesDto.GeoX;
-    delivery.GeoY = coordinatesDto.GeoY;
-
-    dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
-
-    return Results.Ok(new { Message = "Coordinates updated successfully" });
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error updating coordinates");
+        return Results.BadRequest(new { Message = "Error updating coordinates" });
+    }
 }).WithName("UpdateCoordinates").RequireAuthorization();
 
-app.MapPut("/api/deliveries/update-delivery-time/{id}", (string id, DeliveryTimeUpdateDto deliveryTimeDto, [FromServices] MongoDbContext dbContext) =>
+app.MapPut("/api/deliveries/update-delivery-time/{id}", (string id, DeliveryTimeUpdateDto deliveryTimeDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
-
-    if (delivery == null)
+    try
     {
-        return Results.NotFound(new { Message = "Delivery not found" });
+        var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
+
+        if (delivery == null)
+        {
+            return Results.NotFound(new { Message = "Delivery not found" });
+        }
+
+        delivery.DeliveryTime = deliveryTimeDto.DeliveryTime;
+
+        dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
+
+        logger.LogInformation("Delivery time updated successfully for delivery: {DeliveryId}", delivery.Id);
+
+        return Results.Ok(new { Message = "Delivery time updated successfully" });
     }
-
-    delivery.DeliveryTime = deliveryTimeDto.DeliveryTime;
-
-    dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
-
-    return Results.Ok(new { Message = "Delivery time updated successfully" });
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error updating delivery time");
+        return Results.BadRequest(new { Message = "Error updating delivery time" });
+    }
 }).WithName("UpdateDeliveryTime").RequireAuthorization();
 
-app.MapPut("/api/deliveries/update-address/{id}", (string id, UpdateAddressDto addressDto, [FromServices] MongoDbContext dbContext) =>
+app.MapPut("/api/deliveries/update-address/{id}", (string id, UpdateAddressDto addressDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
-    var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
-
-    if (delivery == null)
+    try
     {
-        return Results.NotFound(new { Message = "Delivery not found" });
+        var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
+
+        if (delivery == null)
+        {
+            return Results.NotFound(new { Message = "Delivery not found" });
+        }
+
+        delivery.Address = addressDto.Address;
+
+        dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
+
+        logger.LogInformation("Address updated successfully for delivery: {DeliveryId}", delivery.Id);
+
+        return Results.Ok(new { Message = "Address updated successfully" });
     }
-
-    delivery.Address = addressDto.Address;
-
-    dbContext.Deliveries.ReplaceOne(d => d.Id == id, delivery);
-
-    return Results.Ok(new { Message = "Address updated successfully" });
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error updating address");
+        return Results.BadRequest(new { Message = "Error updating address" });
+    }
 }).WithName("UpdateAddress").RequireAuthorization();
 
 app.UseHealthChecks("/api/deliveries/health");
