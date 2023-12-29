@@ -8,6 +8,8 @@ const Shop = () => {
     const [cart, setCart] = useState([]);
     const [availableQuantities, setAvailableQuantities] = useState({});
     const [products, setProducts] = useState([]);
+    const [comments, setComments] = useState({});
+    const [ratings, setRatings] = useState({});
 
     const navigate = useNavigate();
 
@@ -27,6 +29,22 @@ const Shop = () => {
                 if (allShoesData.length > 0) {
                     const filteredShoes = allShoesData.filter((shoe) => shoe.id >= 3);
                     setProducts(filteredShoes);
+
+                    // Fetch comments and ratings for each item
+                    const commentsData = {};
+                    const ratingsData = {};
+                    for (const shoe of filteredShoes) {
+                        const commentsResponse = await fetch(`https://localhost:7169/CommentsRatings/comments/${shoe.id}`);
+                        const commentsJson = await commentsResponse.json();
+                        commentsData[shoe.id] = commentsJson;
+
+                        const ratingsResponse = await fetch(`https://localhost:7169/CommentsRatings/ratings/${shoe.id}`);
+                        const ratingsJson = await ratingsResponse.json();
+                        ratingsData[shoe.id] = ratingsJson;
+                    }
+
+                    setComments(commentsData);
+                    setRatings(ratingsData);
 
                     // Assuming there is a 'quantity' property in your shoe object
                     const quantities = {};
@@ -107,6 +125,23 @@ const Shop = () => {
                         <div className="card">
                             <p>{product.name} - ${product.price}</p>
                             <p>Amount Left: {availableQuantities[product.id]}</p>
+
+                            {/* Display comments for the item */}
+                            <div>
+                                <h3>Comments:</h3>
+                                {comments[product.id]?.map(comment => (
+                                    <p key={comment.id}>{comment.content}</p>
+                                ))}
+                            </div>
+
+                            {/* Display ratings for the item */}
+                            <div>
+                                <h3>Ratings:</h3>
+                                {ratings[product.id]?.map(rating => (
+                                    <p key={rating.id}>Rating: {rating.value}</p>
+                                ))}
+                            </div>
+
                             <div className='add-button'>
                                 <button onClick={() => addToCart(product)}>Add to Cart</button>
                             </div>
