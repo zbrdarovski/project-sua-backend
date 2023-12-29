@@ -9,6 +9,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpClient();
+
 // Add logging services
 builder.Services.AddLogging(loggingBuilder =>
 {
@@ -124,7 +126,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
 
-app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
+app.MapPost("/api/users/register", async (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger, [FromServices] IHttpClientFactory httpClientFactory) =>
 {
     try
     {
@@ -136,7 +138,24 @@ app.MapPost("/api/users/register", (UserRegistrationDto userDto, [FromServices] 
 
         logger.LogInformation("User registered successfully: {UserId}", user.Id);
 
-        return Results.Ok(new { Message = "Registration successful" });
+        // Create a new cart for the user by calling the cart creation API
+        var cartCreationUrl = $"https://localhost:7265/CartPayment/createcart/{user.Id}";
+
+        using (var httpClient = httpClientFactory.CreateClient())
+        {
+            var response = await httpClient.PostAsync(cartCreationUrl, null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                logger.LogInformation("Cart created successfully for user: {UserId}", user.Id);
+                return Results.Ok(new { Message = "Registration successful" });
+            }
+            else
+            {
+                logger.LogError("Error creating cart for user: {UserId}", user.Id);
+                return Results.BadRequest(new { Message = "Error creating cart for user" });
+            }
+        }
     }
     catch (Exception ex)
     {

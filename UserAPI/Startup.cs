@@ -17,6 +17,9 @@ public class Startup
     {
         var key = Encoding.ASCII.GetBytes(Configuration["Jwt:Key"] ?? string.Empty);
 
+        // Add the HTTP client factory
+        services.AddHttpClient();
+
         services.AddHttpContextAccessor();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
