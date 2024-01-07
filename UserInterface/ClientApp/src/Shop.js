@@ -16,7 +16,7 @@ const Shop = () => {
     useEffect(() => {
         const fetchAllShoes = async () => {
             try {
-                const allShoesResponse = await fetch('http://localhost:5000/Inventory'); // Use the local proxy
+                const allShoesResponse = await fetch('http://localhost:5000/Inventory');
                 if (!allShoesResponse.ok) {
                     console.error('Failed to fetch all shoes:', allShoesResponse.statusText);
                     const errorText = await allShoesResponse.text();
@@ -30,7 +30,6 @@ const Shop = () => {
                     const filteredShoes = allShoesData.filter((shoe) => shoe.id >= 3);
                     setProducts(filteredShoes);
 
-                    // Fetch comments and ratings for each item
                     const commentsData = {};
                     const ratingsData = {};
                     for (const shoe of filteredShoes) {
@@ -46,7 +45,6 @@ const Shop = () => {
                     setComments(commentsData);
                     setRatings(ratingsData);
 
-                    // Assuming there is a 'quantity' property in your shoe object
                     const quantities = {};
                     filteredShoes.forEach((shoe) => {
                         quantities[shoe.id] = shoe.quantity;
@@ -66,7 +64,6 @@ const Shop = () => {
         if (cart.length === 0) {
             setErrorMessage('Please fill your cart first.');
         } else {
-            // Reset error message
             setErrorMessage('');
             navigate('/delivery', { state: { cart: cart } });
         }
@@ -74,7 +71,6 @@ const Shop = () => {
 
     const addToCart = (product) => {
         if (availableQuantities[product.id] > 0) {
-            // Reset error message
             setErrorMessage('');
 
             const existingItem = cart.find((item) => item.id === product.id);
@@ -115,6 +111,13 @@ const Shop = () => {
         return cart.reduce((total, item) => total + item.amount * item.price, 0);
     };
 
+    const calculateAverageRating = (productId) => {
+        const ratingsArray = ratings[productId] || [];
+        const totalRating = ratingsArray.reduce((sum, rating) => sum + rating.value, 0);
+        const averageRating = totalRating / ratingsArray.length || 0;
+        return averageRating.toFixed(2);
+    };
+
     return (
         <div className="Shop">
             <Dashboard />
@@ -126,7 +129,6 @@ const Shop = () => {
                             <p>{product.name} - ${product.price}</p>
                             <p>Amount Left: {availableQuantities[product.id]}</p>
 
-                            {/* Display comments for the item */}
                             <div>
                                 <h3>Comments:</h3>
                                 {comments[product.id]?.map(comment => (
@@ -134,12 +136,9 @@ const Shop = () => {
                                 ))}
                             </div>
 
-                            {/* Display ratings for the item */}
                             <div>
                                 <h3>Ratings:</h3>
-                                {ratings[product.id]?.map(rating => (
-                                    <p key={rating.id}>Rating: {rating.value}</p>
-                                ))}
+                                <p>Rating: {calculateAverageRating(product.id)}</p>
                             </div>
 
                             <div className='add-button'>
