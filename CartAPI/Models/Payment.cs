@@ -5,6 +5,8 @@ namespace CartPaymentAPI.Models
 {
     public class Payment
     {
+        [BsonId]
+        [BsonRepresentation(BsonType.String)] // Specify that Id should be treated as a string
         [BsonElement("Id")]
         public string Id { get; set; }
 

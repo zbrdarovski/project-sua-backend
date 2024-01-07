@@ -58,56 +58,93 @@ const Delivery = () => {
                 const geoY = Math.random();
                 const deliveryTime = new Date().toISOString();
 
-                const response = await fetch('http://localhost:5062/api/deliveries', {
+                // Create a new payment first
+                const paymentResponse = await fetch('https://localhost:7265/CartPayment/payment/add', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         id: (highestDeliveryId + 1).toString(),
+                        cartId: userId,
                         userId,
-                        paymentId: (highestDeliveryId + 1).toString(),
-                        address: inputAddress,
-                        deliveryTime,
-                        geoX,
-                        geoY,
+                        amount: calculateTotalAmount(),
+                        inventoryItems: cart.map(item => ({
+                            id: item.id,
+                            price: item.price,
+                            name: item.name,
+                            color: item.color,
+                            size: item.size,
+                            description: item.description,
+                            image: item.image,
+                            quantity: item.amount,
+                            comments: item.comments,
+                            ratings: item.ratings,
+                        })),
+                        paymentDate: deliveryTime,
                     }),
                 });
 
-                if (response.ok) {
+                if (!paymentResponse.ok) {
+                    console.error('Failed to create payment');
+                    return;
+                }
 
-                    for (const item of cart) {
-                        const inventoryUpdateResponse = await fetch(`http://localhost:5000/Inventory/${item.id}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                            },
-                            body: JSON.stringify({
-                                id: item.id,
-                                price: item.price,
-                                name: item.name,
-                                color: item.color,
-                                size: item.size,
-                                description: item.description,
-                                image: item.image,
-                                quantity: item.quantity - item.amount,
-                                comments: item.comments,
-                                ratings: item.ratings,
-                            }),
-                        });
+                try {
+                    const deliveryResponse = await fetch('http://localhost:5062/api/deliveries', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            id: (highestDeliveryId + 1).toString(),
+                            userId,
+                            paymentId: (highestDeliveryId + 1).toString(),
+                            address: inputAddress,
+                            deliveryTime,
+                            geoX,
+                            geoY,
+                        }),
+                    });
 
-                        if (!inventoryUpdateResponse.ok) {
-                            console.error(`Failed to update inventory for item ${item.id}`);
-                            navigate('/shop');
-                            return;
+                    if (deliveryResponse.ok) {
+                        // Update inventory items and navigate accordingly
+                        for (const item of cart) {
+                            const inventoryUpdateResponse = await fetch(`http://localhost:5000/Inventory/${item.id}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                },
+                                body: JSON.stringify({
+                                    id: item.id,
+                                    price: item.price,
+                                    name: item.name,
+                                    color: item.color,
+                                    size: item.size,
+                                    description: item.description,
+                                    image: item.image,
+                                    quantity: item.quantity - item.amount,
+                                    comments: item.comments,
+                                    ratings: item.ratings,
+                                }),
+                            });
+
+                            if (!inventoryUpdateResponse.ok) {
+                                console.error(`Failed to update inventory for item ${item.id}`);
+                                navigate('/shop');
+                                return;
+                            }
                         }
-                    }
 
-                    console.log('Order placed successfully');
-                    navigate('/preview');
-                } else {
-                    console.error('Failed to add delivery');
+                        console.log('Order placed successfully');
+                        navigate('/preview');
+                    } else {
+                        console.error('Failed to add delivery');
+                    }
+                } catch (jsonError) {
+                    console.error('Error parsing payment JSON:', jsonError);
+                    return;
                 }
             } catch (error) {
                 console.error('Error:', error);

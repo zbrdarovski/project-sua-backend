@@ -137,8 +137,8 @@ namespace CartAPI.Controllers
             try
             {
                 // Set necessary properties like PaymentDate, PaymentId, etc.
-                payment.PaymentDate = DateTime.Now;
-                payment.Id = Guid.NewGuid().ToString();
+                //payment.PaymentDate = DateTime.Now;
+                //payment.Id = Guid.NewGuid().ToString();
 
                 await _cartPaymentRepository.AddPaymentAsync(payment);
 
