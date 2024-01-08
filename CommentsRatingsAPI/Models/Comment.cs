@@ -1,5 +1,4 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 using System;
 
 namespace CommentsRatingsAPI.Models
@@ -9,7 +8,7 @@ namespace CommentsRatingsAPI.Models
         [BsonElement("Id")]
         public string Id { get; set; }
 
-        [BsonElement("itemId")]
+        [BsonElement("ItemId")]
         public string ItemId { get; set; }
 
         [BsonElement("UserId")]

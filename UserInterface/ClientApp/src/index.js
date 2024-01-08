@@ -8,6 +8,7 @@ import Profile from './Profile';
 import Register from './Register';
 import Delivery from './Delivery';
 import Preview from './Preview';
+import CommentsRatings from './CommentsRatings';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -20,6 +21,7 @@ root.render(
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/delivery" element={<Delivery />} />
+                <Route path="/review" element={<CommentsRatings />} />
             </Routes>
         </Router>
     </React.StrictMode>

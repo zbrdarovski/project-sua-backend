@@ -25,6 +25,9 @@ function Dashboard() {
             <Link to="/profile">
                 <button>Profile</button>
             </Link>
+            <Link to="/review">
+                <button>Review</button>
+            </Link>
             <button onClick={handleLogout}>Logout</button>
         </div>
     );
