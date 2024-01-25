@@ -24,11 +24,34 @@ namespace CommentsRatingsAPI
             return await _commentsCollection.Find(comment => comment.ItemId == itemId).ToListAsync();
         }
 
+        /*
         public async Task AddCommentAsync(Comment comment)
         {
             if (string.IsNullOrWhiteSpace(comment.Id) || string.IsNullOrWhiteSpace(comment.UserId) || string.IsNullOrWhiteSpace(comment.Content))
             {
                 throw new ArgumentException("Invalid comment. Please provide valid data.");
+            }
+
+            comment.Timestamp = DateTime.UtcNow;
+            await _commentsCollection.InsertOneAsync(comment);
+        }
+        */
+
+        public async Task AddCommentAsync(Comment comment)
+        {
+            if (string.IsNullOrWhiteSpace(comment.Id) || string.IsNullOrWhiteSpace(comment.UserId) || string.IsNullOrWhiteSpace(comment.Content))
+            {
+                throw new ArgumentException("Invalid comment. Please provide valid data.");
+            }
+
+            // Preveri ali je že komentiral
+            var filter = Builders<Comment>.Filter.Eq(c => c.UserId, comment.UserId) &
+                         Builders<Comment>.Filter.Eq(c => c.ItemId, comment.ItemId);
+            var count = await _commentsCollection.CountDocumentsAsync(filter);
+
+            if (count > 0)
+            {
+                throw new ArgumentException("User has already commented on this item.");
             }
 
             comment.Timestamp = DateTime.UtcNow;
@@ -63,11 +86,34 @@ namespace CommentsRatingsAPI
         }
 
 
+        /*
         public async Task AddRatingAsync(Rating rating)
         {
             if (string.IsNullOrWhiteSpace(rating.Id) || string.IsNullOrWhiteSpace(rating.UserId) || rating.Value < 1 || rating.Value > 5)
             {
                 throw new ArgumentException("Invalid rating. Please provide valid data.");
+            }
+
+            rating.Timestamp = DateTime.UtcNow;
+            await _ratingsCollection.InsertOneAsync(rating);
+        }
+        */
+
+        public async Task AddRatingAsync(Rating rating)
+        {
+            if (string.IsNullOrWhiteSpace(rating.Id) || string.IsNullOrWhiteSpace(rating.UserId) || rating.Value < 1 || rating.Value > 5)
+            {
+                throw new ArgumentException("Invalid rating. Please provide valid data.");
+            }
+
+            // Preveri ali je že komentiral
+            var filter = Builders<Rating>.Filter.Eq(r => r.UserId, rating.UserId) &
+                         Builders<Rating>.Filter.Eq(r => r.ItemId, rating.ItemId);
+            var count = await _ratingsCollection.CountDocumentsAsync(filter);
+
+            if (count > 0)
+            {
+                throw new ArgumentException("User has already rated this item.");
             }
 
             rating.Timestamp = DateTime.UtcNow;

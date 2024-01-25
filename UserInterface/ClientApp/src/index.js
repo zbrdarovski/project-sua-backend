@@ -9,6 +9,10 @@ import Register from './Register';
 import Delivery from './Delivery';
 import Preview from './Preview';
 import CommentsRatings from './CommentsRatings';
+import Payments from './Payments';
+import Rabbit from './Rabbit';
+import Stats from './Stats';
+import statsHaramija from './statsHaramija';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -22,6 +26,10 @@ root.render(
                 <Route path="/register" element={<Register />} />
                 <Route path="/delivery" element={<Delivery />} />
                 <Route path="/review" element={<CommentsRatings />} />
+                <Route path="/payments" element={<Payments />} />
+                <Route path="/rabbit" element={<Rabbit />} />
+                <Route path="/stats" element={<Stats />} />
+                <Route path="/statsharamija" element={<statsHaramija />} />
             </Routes>
         </Router>
     </React.StrictMode>

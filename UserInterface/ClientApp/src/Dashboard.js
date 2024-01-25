@@ -28,6 +28,18 @@ function Dashboard() {
             <Link to="/review">
                 <button>Review</button>
             </Link>
+            <Link to="/payments">
+                <button>Payments</button>
+            </Link>
+            <Link to="/rabbit">
+                <button>RabbitMQ</button>
+            </Link>
+            <Link to="/stats">
+                <button>Stats 1</button>
+            </Link>
+            <Link to="/statsharamija">
+                <button>Stats 2</button>
+            </Link>
             <button onClick={handleLogout}>Logout</button>
         </div>
     );
