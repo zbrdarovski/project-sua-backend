@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
 import './Payments.css';
+import Dashboard from './Dashboard';
 
 const PaymentHistory = () => {
     const [payments, setPayments] = useState([]);
@@ -8,11 +8,10 @@ const PaymentHistory = () => {
     const [error, setError] = useState(null);
     const userId = localStorage.getItem('userId');
 
-    //manjka port
     useEffect(() => {
         const fetchPayments = async () => {
             try {
-                const response = await fetch(`http://localhost:YOUR_PORT/cart/user/${userId}`, {
+                const response = await fetch(`https://localhost:7265/CartPayment/payments/${userId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -46,26 +45,27 @@ const PaymentHistory = () => {
     }
 
     return (
-        <div className="PaymentHistory">
-            <h2>Payment History</h2>
-            {payments.length > 0 ? (
-                <ul>
-                    {payments.map(payment => (
-                        <li key={payment.id}>
-                            {/* Render payment details */}
-                            <p>Payment ID: {payment.id}</p>
-                            <p>Amount: ${payment.amount}</p>
-                            <p>Date: {new Date(payment.paymentDate).toLocaleDateString()}</p>
-                            {/* Add more details as needed */}
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p>No payments found.</p>
-            )}
+        <div className="Payment">
+            <Dashboard />
+            <div className="payment-container">
+                <h2>Payment History</h2>
+                {payments.length > 0 ? (
+                    <ul>
+                        {payments.map(payment => (
+                            <li key={payment.id} className="paymentItem">
+                                <p>Payment ID: {payment.id}</p>
+                                <p>Amount: ${payment.amount}</p>
+                                <p>Date: {new Date(payment.paymentDate).toLocaleDateString()}</p>
+                                {/* Add more payment details as needed */}
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>No payments found.</p>
+                )}
+            </div>
         </div>
     );
 };
 
 export default PaymentHistory;
-
