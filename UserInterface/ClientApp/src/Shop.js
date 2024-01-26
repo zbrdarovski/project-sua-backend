@@ -16,7 +16,7 @@ const Shop = () => {
     useEffect(() => {
         const fetchAllShoes = async () => {
             try {
-                const allShoesResponse = await fetch('http://localhost:5000/Inventory');
+                const allShoesResponse = await fetch('https://localhost:44309/Inventory');
                 if (!allShoesResponse.ok) {
                     console.error('Failed to fetch all shoes:', allShoesResponse.statusText);
                     const errorText = await allShoesResponse.text();
