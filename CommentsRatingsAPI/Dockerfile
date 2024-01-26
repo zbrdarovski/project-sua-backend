@@ -13,6 +13,8 @@ WORKDIR /app
 COPY ./bin/Release/net6.0/ /app/
 
 EXPOSE 5000
+EXPOSE 80
+EXPOSE 443
 
 ENV RABBITMQ_HOSTNAME=studentdocker.informatika.uni-mb.si
 ENV RABBITMQ_PORT=5672
