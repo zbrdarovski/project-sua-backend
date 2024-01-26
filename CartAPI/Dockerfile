@@ -4,7 +4,7 @@
 #For more information, please see https://aka.ms/containercompat
 
 # Use the official .NET 6 runtime as a parent image
-FROM mcr.microsoft.com/dotnet/sdk:6.0
+FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine
 
 # Set the working directory in the container
 WORKDIR /app

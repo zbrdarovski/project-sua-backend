@@ -25,7 +25,7 @@
 
 
 # Use the official .NET 6 runtime as a parent image
-FROM mcr.microsoft.com/dotnet/sdk:6.0
+FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine
 
 # Set the working directory in the container
 WORKDIR /app
@@ -34,6 +34,7 @@ WORKDIR /app
 COPY ./bin/Release/net6.0/ /app/
 
 EXPOSE 5000
+EXPOSE 44309
 EXPOSE 80
 EXPOSE 443
 
