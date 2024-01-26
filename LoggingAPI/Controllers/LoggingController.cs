@@ -1,5 +1,7 @@
-using LoggingAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
+using LoggingAPI.Models;
 
 namespace LoggingAPI.Controllers
 {
@@ -7,42 +9,37 @@ namespace LoggingAPI.Controllers
     [Route("[controller]")]
     public class LoggingController : ControllerBase
     {
-       
-        private readonly ILogger<LoggingController> _logger;
-        private readonly RabbitMQService _rabbitMQService;
+        private readonly LogDatabaseService _logDbService;
 
-        public LoggingController(ILogger<LoggingController> logger, RabbitMQService rabbitMQService)
+        public LoggingController(LogDatabaseService logDbService)
         {
-            _logger = logger;
-            _rabbitMQService = rabbitMQService;
+            _logDbService = logDbService;
         }
 
-        [HttpPost("postMessage")]
-        public IActionResult SendMessage([FromBody] string logMessage)
+        [HttpPost("postLogs")]
+        public async Task<IActionResult> PostLogs([FromServices] LogDatabaseService logDbService, [FromServices] RabbitMQService rabbitMQService)
         {
-            _rabbitMQService.SendMessage(logMessage);
-            return Ok("Log poslan v RabbitMQ.");
-        }
+            var logsFromRabbitMQ = rabbitMQService.GetAllMessages();
+            foreach (var logEntry in logsFromRabbitMQ)
+            {
+                await logDbService.SaveLog(logEntry);
+            }
 
-        [HttpPost("sendLog")]
-        public IActionResult SendLog([FromBody] LoggingEntry logEntry)
-        {
-            _rabbitMQService.SendLog(logEntry);
-            return Ok("Log sent to RabbitMQ.");
+            return Ok("Logs saved to database.");
         }
 
         [HttpGet("logs/{startDate}/{endDate}")]
-        public IActionResult GetLogs(DateTime startDate, DateTime endDate)
+        public async Task<IActionResult> GetLogs(DateTime startDate, DateTime endDate)
         {
-            var logs = _rabbitMQService.GetLogs(startDate, endDate);
+            var logs = await _logDbService.GetLogs(startDate, endDate);
             return Ok(logs);
         }
 
         [HttpDelete("clearLogs")]
-        public IActionResult ClearLogs()
+        public async Task<IActionResult> ClearLogs()
         {
-            _rabbitMQService.ClearQueue("soa_rv1_upp3");
-            return Ok("Logs cleared from the queue.");
+            await _logDbService.DeleteAllLogs();
+            return Ok("Logs cleared from the database.");
         }
 
     }

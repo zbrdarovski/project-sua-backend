@@ -12,6 +12,10 @@ builder.Services.AddSwaggerGen();
 // dodaj rabbitMQ
 builder.Services.AddSingleton<RabbitMQService>();
 
+builder.Services.AddSingleton<MongoDbContext>(sp => new MongoDbContext(builder.Configuration));
+builder.Services.AddScoped<LogDatabaseService>();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

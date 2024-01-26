@@ -1,4 +1,4 @@
-﻿namespace InventoryAPI.Models
+﻿namespace CommentsRatingsAPI.Models
 {
     public class LoggingEntry
     {

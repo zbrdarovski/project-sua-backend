@@ -74,5 +74,25 @@ namespace LoggingAPI
             _channel.QueuePurge(queueName);
         }
 
+        public List<LoggingEntry> GetAllMessages()
+        {
+            var messages = new List<LoggingEntry>();
+
+            while (true)
+            {
+                var result = _channel.BasicGet("your_queue_name", true);
+                if (result == null) break;
+
+                var message = Encoding.UTF8.GetString(result.Body.ToArray());
+                var logEntry = JsonSerializer.Deserialize<LoggingEntry>(message);
+                if (logEntry != null)
+                {
+                    messages.Add(logEntry);
+                }
+            }
+
+            return messages;
+        }
+
     }
 }

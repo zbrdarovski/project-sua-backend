@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
+using CommentsRatingsAPI.Models;
 
 namespace CommentsRatingsAPI.Controllers
 {
