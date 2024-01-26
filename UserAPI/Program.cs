@@ -6,6 +6,7 @@ using MongoDB.Driver;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using UserAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -108,6 +109,10 @@ builder.Services.AddSingleton<MongoDbContext>(sp =>
     return new MongoDbContext(configuration.ConnectionString, configuration.DatabaseName);
 });
 
+// RabbitMQ
+var rabbitMQService = new RabbitMQService();
+builder.Services.AddSingleton(rabbitMQService);
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -128,6 +133,15 @@ app.UseSession();
 
 app.MapPost("/api/users/register", async (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger, [FromServices] IHttpClientFactory httpClientFactory) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Register user: " + userDto,
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/users/register",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "UserAPI",
+        LogType = "Info"
+    });
     try
     {
         // Combine the password and salt, then hash the result

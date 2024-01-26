@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using System.Text;
+using DeliveryAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,6 +105,10 @@ builder.Services.AddSingleton<MongoDbContext>(sp =>
     return new MongoDbContext(configuration.ConnectionString, configuration.DatabaseName);
 });
 
+// RabbitMQ
+var rabbitMQService = new RabbitMQService();
+builder.Services.AddSingleton(rabbitMQService);
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -124,6 +129,15 @@ app.UseSession();
 
 app.MapPost("/api/deliveries", (DeliveryCreateDto deliveryDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Get deliveries: " + deliveryDto,
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/deliveries",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "DeliveryAPI",
+        LogType = "Info"
+    });
     try
     {
         var delivery = new Delivery

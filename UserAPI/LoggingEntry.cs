@@ -1,6 +1,6 @@
-﻿namespace InventoryAPI.Models
+﻿namespace UserAPI
 {
-    public class LogEntry
+    public class LoggingEntry
     {
         public DateTime Timestamp { get; set; }
         public string LogType { get; set; }
