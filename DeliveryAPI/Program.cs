@@ -131,7 +131,7 @@ app.MapPost("/api/deliveries", (DeliveryCreateDto deliveryDto, [FromServices] Mo
 {
     rabbitMQService.SendLog(new LoggingEntry
     {
-        Message = "Get deliveries: " + deliveryDto,
+        Message = "Add delivery: " + deliveryDto,
         Timestamp = DateTime.UtcNow,
         Url = "/api/deliveries",
         CorrelationId = Guid.NewGuid().ToString(),
@@ -166,6 +166,15 @@ app.MapPost("/api/deliveries", (DeliveryCreateDto deliveryDto, [FromServices] Mo
 
 app.MapGet("/api/deliveries", ([FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Get deliveries",
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/deliveries",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "DeliveryAPI",
+        LogType = "Info"
+    });
     try
     {
         var deliveries = dbContext.Deliveries.Find(_ => true).ToList();
@@ -182,6 +191,15 @@ app.MapGet("/api/deliveries/{id}", (string id, [FromServices] MongoDbContext dbC
 {
     try
     {
+        rabbitMQService.SendLog(new LoggingEntry
+        {
+            Message = "Get delivery by ID: " + id,
+            Timestamp = DateTime.UtcNow,
+            Url = "/api/deliveries/{id}",
+            CorrelationId = Guid.NewGuid().ToString(),
+            ApplicationName = "DeliveryAPI",
+            LogType = "Info"
+        });
         var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
         if (delivery == null)
         {
@@ -201,6 +219,15 @@ app.MapPut("/api/deliveries/{id}", (string id, DeliveryUpdateDto deliveryDto, [F
 {
     try
     {
+        rabbitMQService.SendLog(new LoggingEntry
+        {
+            Message = "Update delivery with ID: " + id,
+            Timestamp = DateTime.UtcNow,
+            Url = "/api/deliveries/{id}",
+            CorrelationId = Guid.NewGuid().ToString(),
+            ApplicationName = "DeliveryAPI",
+            LogType = "Info"
+        });
         var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
 
         if (delivery == null)
@@ -227,6 +254,15 @@ app.MapPut("/api/deliveries/{id}", (string id, DeliveryUpdateDto deliveryDto, [F
 
 app.MapDelete("/api/deliveries/{id}", (string id, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Delete delivery with ID: " + id,
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/deliveries/{id}",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "DeliveryAPI",
+        LogType = "Info"
+    });
     try
     {
         var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
@@ -250,6 +286,15 @@ app.MapDelete("/api/deliveries/{id}", (string id, [FromServices] MongoDbContext 
 
 app.MapPut("/api/deliveries/update-coordinates/{id}", (string id, CoordinatesUpdateDto coordinatesDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Update delivery coordinates: " + coordinatesDto,
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/deliveries/update-coordinates/{id}",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "DeliveryAPI",
+        LogType = "Info"
+    });
     try
     {
         var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
@@ -279,6 +324,15 @@ app.MapPut("/api/deliveries/update-delivery-time/{id}", (string id, DeliveryTime
 {
     try
     {
+        rabbitMQService.SendLog(new LoggingEntry
+        {
+            Message = "Updating delivery time for ID: " + id,
+            Timestamp = DateTime.UtcNow,
+            Url = "/api/deliveries/update-delivery-time/{id}",
+            CorrelationId = Guid.NewGuid().ToString(),
+            ApplicationName = "DeliveryAPI",
+            LogType = "Info"
+        });
         var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
 
         if (delivery == null)
@@ -305,6 +359,15 @@ app.MapPut("/api/deliveries/update-address/{id}", (string id, UpdateAddressDto a
 {
     try
     {
+        rabbitMQService.SendLog(new LoggingEntry
+        {
+            Message = "Update delivery with ID: " + id,
+            Timestamp = DateTime.UtcNow,
+            Url = "/api/deliveries/update-address/{id}",
+            CorrelationId = Guid.NewGuid().ToString(),
+            ApplicationName = "DeliveryAPI",
+            LogType = "Info"
+        });
         var delivery = dbContext.Deliveries.Find(d => d.Id == id).FirstOrDefault();
 
         if (delivery == null)
@@ -320,7 +383,7 @@ app.MapPut("/api/deliveries/update-address/{id}", (string id, UpdateAddressDto a
 
         return Results.Ok(new { Message = "Address updated successfully" });
     }
-    catch (Exception ex)
+    catch (Exception ex) 
     {
         logger.LogError(ex, "Error updating address");
         return Results.BadRequest(new { Message = "Error updating address" });

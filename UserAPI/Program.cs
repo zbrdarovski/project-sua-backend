@@ -207,6 +207,15 @@ string GenerateJwtToken(string userId, string key, string issuer, HttpContext ht
 
 app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] IConfiguration configuration, [FromServices] IHttpContextAccessor httpContextAccessor, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Login user: " + userDto,
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/users/login",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "UserAPI",
+        LogType = "Info"
+    });
     var user = dbContext.Users.Find(u => u.Username == userDto.Username).FirstOrDefault();
 
     if (user == null || !BCrypt.Net.BCrypt.Verify(userDto.Password + salt, user.Password))
@@ -225,6 +234,15 @@ app.MapPost("/api/users/login", (UserLoginDto userDto, [FromServices] MongoDbCon
 
 app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, [FromServices] MongoDbContext dbContext, [FromServices] IHttpContextAccessor httpContextAccessor, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Change password: " + changePasswordDto,
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/users/change-password",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "UserAPI",
+        LogType = "Info"
+    });
     var user = dbContext.Users.Find(u => u.Username == changePasswordDto.Username).FirstOrDefault();
 
     if (user == null || !BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword + salt, user.Password))
@@ -247,6 +265,15 @@ app.MapPost("/api/users/change-password", (ChangePasswordDto changePasswordDto, 
 
 app.MapGet("/api/users", ([FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Get users",
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/users",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "UserAPI",
+        LogType = "Info"
+    });
     try
     {
         var users = dbContext.Users.Find(_ => true).ToList();
@@ -261,6 +288,15 @@ app.MapGet("/api/users", ([FromServices] MongoDbContext dbContext, [FromServices
 
 app.MapGet("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Get user",
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/users/{id}",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "UserAPI",
+        LogType = "Info"
+    });
     try
     {
         var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
@@ -280,6 +316,15 @@ app.MapGet("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContex
 
 app.MapPut("/api/users/{id}", (string id, UserUpdateDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Update user: " + userDto,
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/users/{id}",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "UserAPI",
+        LogType = "Info"
+    });
     try
     {
         var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
@@ -304,6 +349,15 @@ app.MapPut("/api/users/{id}", (string id, UserUpdateDto userDto, [FromServices] 
 
 app.MapDelete("/api/users/{id}", (string id, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Delete user: " + id,
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/users/{id}",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "UserAPI",
+        LogType = "Info"
+    });
     try
     {
         var user = dbContext.Users.Find(u => u.Id == id).FirstOrDefault();
@@ -327,6 +381,15 @@ app.MapDelete("/api/users/{id}", (string id, [FromServices] MongoDbContext dbCon
 
 app.MapGet("/api/users/username/{username}", (string username, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
+    rabbitMQService.SendLog(new LoggingEntry
+    {
+        Message = "Get user by username: " + username,
+        Timestamp = DateTime.UtcNow,
+        Url = "/api/users/username/{id}",
+        CorrelationId = Guid.NewGuid().ToString(),
+        ApplicationName = "UserAPI",
+        LogType = "Info"
+    });
     try
     {
         var user = dbContext.Users.Find(u => u.Username == username).FirstOrDefault();
@@ -339,6 +402,15 @@ app.MapGet("/api/users/username/{username}", (string username, [FromServices] Mo
     }
     catch (Exception ex)
     {
+        rabbitMQService.SendLog(new LoggingEntry
+        {
+            Message = "Error retrieving user by username: " + ex.Message,
+            Timestamp = DateTime.UtcNow,
+            Url = "/api/users/username/{id}",
+            CorrelationId = Guid.NewGuid().ToString(),
+            ApplicationName = "UserAPI",
+            LogType = "Error"
+        });
         logger.LogError(ex, "Error retrieving user by username");
         return Results.BadRequest(new { Message = "Error retrieving user by username" });
     }
