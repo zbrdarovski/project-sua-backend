@@ -15,6 +15,18 @@ builder.Services.AddSingleton<RabbitMQService>();
 builder.Services.AddSingleton<MongoDbContext>(sp => new MongoDbContext(builder.Configuration));
 builder.Services.AddScoped<LogDatabaseService>();
 
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:44459") // Add your frontend URL here
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .AllowCredentials();
+        });
+});
 
 var app = builder.Build();
 
@@ -28,5 +40,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseCors("AllowSpecificOrigin");
 
 app.Run();

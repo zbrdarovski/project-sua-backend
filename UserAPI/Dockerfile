@@ -8,8 +8,8 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the build output from your local machine to the container
-COPY ./bin/Release/net6.0/ /app/
+# Copy the application files from your local machine to the container
+COPY . /app
 
 EXPOSE 5000
 

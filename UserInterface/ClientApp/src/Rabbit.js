@@ -10,7 +10,8 @@ const Rabbit = () => {
 
     useEffect(() => {
         // Fetch data from the API endpoint (optional, if you want to display existing logs)
-        fetch('https://localhost:7136/Logging/logs')
+        fetch('https://localhost:7136/Logging/logs/2023-11-09/2024-02-19')
+
             .then(response => response.json())
             .then(data => {
                 setLogs(data);
@@ -53,22 +54,29 @@ const Rabbit = () => {
 
     const getLogsBetweenDates = async () => {
         try {
-            const response = await fetch(`https://localhost:7136/Logging/logs/${startDate}/${endDate}`, {
-                method: 'GET',
-                headers: {
-                    'accept': '*/*'
-                },
-            });
+            // Check if start and end dates are provided
+            if (startDate && endDate) {
+                const response = await fetch(`https://localhost:7136/Logging/logs/${startDate}/${endDate}`, {
+                    method: 'GET',
+                    headers: {
+                        'accept': '*/*'
+                    },
+                });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch logs between dates');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch logs between dates');
+                }
+
+                const data = await response.json();
+                setLogsBetweenDates(data); // Update logsBetweenDates state
+
+                // Handle the fetched data as needed
+                console.log('Logs between dates:', data);
+            } else {
+                // Clear logsBetweenDates state if start and end dates are not provided
+                setLogsBetweenDates([]);
+                console.warn('Please provide both start and end dates.');
             }
-
-            const data = await response.json();
-            setLogsBetweenDates(data); // Update logsBetweenDates state
-
-            // Handle the fetched data as needed
-            console.log('Logs between dates:', data);
         } catch (error) {
             console.error('Error:', error.message);
         }
