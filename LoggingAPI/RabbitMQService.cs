@@ -80,7 +80,7 @@ namespace LoggingAPI
 
             while (true)
             {
-                var result = _channel.BasicGet("your_queue_name", true);
+                var result = _channel.BasicGet("soa_rv1_upp3", true);
                 if (result == null) break;
 
                 var message = Encoding.UTF8.GetString(result.Body.ToArray());
