@@ -12,7 +12,7 @@ const Delivery = () => {
     useEffect(() => {
         const fetchAllDeliveries = async () => {
             try {
-                const allDeliveriesResponse = await fetch('http://localhost:5062/api/deliveries');
+                const allDeliveriesResponse = await fetch('http://localhost:11182/api/deliveries');
                 if (!allDeliveriesResponse.ok) {
                     console.error('Failed to fetch all deliveries:', allDeliveriesResponse.statusText);
                     return;
@@ -59,7 +59,7 @@ const Delivery = () => {
                 const deliveryTime = new Date().toISOString();
 
                 // Create a new payment first
-                const paymentResponse = await fetch('https://localhost:7265/CartPayment/payment/add', {
+                const paymentResponse = await fetch('https://localhost:11183/CartPayment/payment/add', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ const Delivery = () => {
                 }
 
                 try {
-                    const deliveryResponse = await fetch('http://localhost:5062/api/deliveries', {
+                    const deliveryResponse = await fetch('http://localhost:11182/api/deliveries', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

@@ -33,11 +33,11 @@ const Shop = () => {
                     const commentsData = {};
                     const ratingsData = {};
                     for (const shoe of filteredShoes) {
-                        const commentsResponse = await fetch(`https://localhost:7169/CommentsRatings/comments/${shoe.id}`);
+                        const commentsResponse = await fetch(`https://localhost:11185/CommentsRatings/comments/${shoe.id}`);
                         const commentsJson = await commentsResponse.json();
                         commentsData[shoe.id] = commentsJson;
 
-                        const ratingsResponse = await fetch(`https://localhost:7169/CommentsRatings/ratings/${shoe.id}`);
+                        const ratingsResponse = await fetch(`https://localhost:11185/CommentsRatings/ratings/${shoe.id}`);
                         const ratingsJson = await ratingsResponse.json();
                         ratingsData[shoe.id] = ratingsJson;
                     }

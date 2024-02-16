@@ -11,7 +11,7 @@ const PaymentHistory = () => {
     useEffect(() => {
         const fetchPayments = async () => {
             try {
-                const response = await fetch(`https://localhost:7265/CartPayment/payments/${userId}`, {
+                const response = await fetch(`https://localhost:11183/CartPayment/payments/${userId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

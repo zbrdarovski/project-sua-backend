@@ -39,7 +39,7 @@ const CommentsRatings = () => {
                     let highestRating = 0;
 
                     for (const shoe of filteredShoes) {
-                        const commentsResponse = await fetch(`https://localhost:7169/CommentsRatings/comments/${shoe.id}`);
+                        const commentsResponse = await fetch(`https://localhost:11185/CommentsRatings/comments/${shoe.id}`);
                         const commentsJson = await commentsResponse.json();
                         commentsData[shoe.id] = commentsJson;
 
@@ -48,7 +48,7 @@ const CommentsRatings = () => {
                             highestComment = Math.max(highestComment, commentId);
                         });
 
-                        const ratingsResponse = await fetch(`https://localhost:7169/CommentsRatings/ratings/${shoe.id}`);
+                        const ratingsResponse = await fetch(`https://localhost:11185/CommentsRatings/ratings/${shoe.id}`);
                         const ratingsJson = await ratingsResponse.json();
                         ratingsData[shoe.id] = ratingsJson;
 
@@ -89,7 +89,7 @@ const CommentsRatings = () => {
                 timestamp: new Date().toISOString(),
             });
 
-            const response = await fetch('https://localhost:7169/CommentsRatings/comments', {
+            const response = await fetch('https://localhost:11185/CommentsRatings/comments', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ const CommentsRatings = () => {
             if (response.ok) {
                 setNewComment('');
                 setHighestCommentId(highestCommentId + 1);
-                const commentsResponse = await fetch(`https://localhost:7169/CommentsRatings/comments/${productId}`);
+                const commentsResponse = await fetch(`https://localhost:11185/CommentsRatings/comments/${productId}`);
                 const commentsJson = await commentsResponse.json();
                 setComments((prevComments) => ({ ...prevComments, [productId]: commentsJson }));
             } else {
@@ -115,12 +115,12 @@ const CommentsRatings = () => {
 
     const handleCommentDelete = async (productId, commentId) => {
         try {
-            const response = await fetch(`https://localhost:7169/CommentsRatings/comments/${commentId}`, {
+            const response = await fetch(`https://localhost:11185/CommentsRatings/comments/${commentId}`, {
                 method: 'DELETE',
             });
 
             if (response.ok) {
-                const commentsResponse = await fetch(`https://localhost:7169/CommentsRatings/comments/${productId}`);
+                const commentsResponse = await fetch(`https://localhost:11185/CommentsRatings/comments/${productId}`);
                 const commentsJson = await commentsResponse.json();
                 setComments((prevComments) => ({ ...prevComments, [productId]: commentsJson }));
             } else {
@@ -133,7 +133,7 @@ const CommentsRatings = () => {
 
     const handleRatingSubmit = async (productId) => {
         try {
-            const response = await fetch('https://localhost:7169/CommentsRatings/ratings', {
+            const response = await fetch('https://localhost:11185/CommentsRatings/ratings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -148,7 +148,7 @@ const CommentsRatings = () => {
             });
 
             if (response.ok) {
-                const ratingsResponse = await fetch(`https://localhost:7169/CommentsRatings/ratings/${productId}`);
+                const ratingsResponse = await fetch(`https://localhost:11185/CommentsRatings/ratings/${productId}`);
                 setHighestRatingId(highestRatingId + 1);
                 const ratingsJson = await ratingsResponse.json();
                 setRatings((prevRatings) => ({ ...prevRatings, [productId]: ratingsJson }));
@@ -162,12 +162,12 @@ const CommentsRatings = () => {
 
     const handleRatingDelete = async (productId, ratingId) => {
         try {
-            const response = await fetch(`https://localhost:7169/CommentsRatings/ratings/${ratingId}`, {
+            const response = await fetch(`https://localhost:11185/CommentsRatings/ratings/${ratingId}`, {
                 method: 'DELETE',
             });
 
             if (response.ok) {
-                const ratingsResponse = await fetch(`https://localhost:7169/CommentsRatings/ratings/${productId}`);
+                const ratingsResponse = await fetch(`https://localhost:11185/CommentsRatings/ratings/${productId}`);
                 const ratingsJson = await ratingsResponse.json();
                 setRatings((prevRatings) => ({ ...prevRatings, [productId]: ratingsJson }));
             } else {

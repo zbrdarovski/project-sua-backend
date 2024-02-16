@@ -10,7 +10,7 @@ const DeliveryList = () => {
 
     useEffect(() => {
         // Fetch data from the API endpoint
-        fetch('http://localhost:5062/api/deliveries/')
+        fetch('http://localhost:11182/api/deliveries/')
             .then(response => response.json())
             .then(data => {
                 // Filter deliveries based on userId

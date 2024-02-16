@@ -42,7 +42,7 @@ public class Startup
             options.AddPolicy("AllowSpecificOrigin",
                 builder =>
                 {
-                    builder.WithOrigins("http://localhost:44459") // Update with your frontend URL
+                    builder.WithOrigins("http://localhost:11180") // Update with your frontend URL
                            .AllowAnyHeader()
                            .AllowAnyMethod();
                 });

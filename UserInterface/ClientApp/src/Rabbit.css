@@ -41,6 +41,8 @@
     .preview-container ul {
         padding: 10px;
         margin: 0; /* Remove default margin for ul */
+        max-height: 200px; /* Set maximum height */
+        overflow-y: auto; /* Enable vertical scrollbar */
     }
 
 .logItem {

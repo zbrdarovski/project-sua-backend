@@ -28,7 +28,7 @@ const Register = () => {
     useEffect(() => {
         const fetchAllUsers = async () => {
             try {
-                const response = await fetch('http://localhost:5293/api/users');
+                const response = await fetch('http://localhost:11181/api/users');
                 if (response.ok) {
                     const data = await response.json();
                     if (data.length > 0) {
@@ -69,7 +69,7 @@ const Register = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:5293/api/users/register', {
+            const response = await fetch('http://localhost:11181/api/users/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

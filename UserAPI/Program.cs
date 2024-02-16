@@ -85,7 +85,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigin",
         builder =>
         {
-            builder.WithOrigins("http://localhost:44459") // Add your frontend URL here
+            builder.WithOrigins("http://localhost:11180") // Add your frontend URL here
                    .AllowAnyHeader()
                    .AllowAnyMethod()
                    .AllowCredentials();
@@ -153,7 +153,7 @@ app.MapPost("/api/users/register", async (UserRegistrationDto userDto, [FromServ
         logger.LogInformation("User registered successfully: {UserId}", user.Id);
 
         // Create a new cart for the user by calling the cart creation API
-        var cartCreationUrl = $"https://localhost:7265/CartPayment/createcart/{user.Id}";
+        var cartCreationUrl = $"https://localhost:11183/CartPayment/createcart/{user.Id}";
 
         using (var httpClient = httpClientFactory.CreateClient())
         {
