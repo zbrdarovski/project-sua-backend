@@ -19,7 +19,17 @@ const CommentsRatings = () => {
     useEffect(() => {
         const fetchAllShoes = async () => {
             try {
-                const allShoesResponse = await fetch('http://localhost:5000/Inventory');
+                let baseUrl;
+
+                if (process.env.NODE_ENV === 'development') {
+                    // If in debug mode
+                    baseUrl = 'localhost';
+                } else {
+                    // If in release mode
+                    baseUrl = 'inventoryapi';
+                }
+
+                const allShoesResponse = await fetch(`https://${baseUrl}:11184/Inventory`);
                 if (!allShoesResponse.ok) {
                     console.error('Failed to fetch all shoes:', allShoesResponse.statusText);
                     const errorText = await allShoesResponse.text();
@@ -39,7 +49,17 @@ const CommentsRatings = () => {
                     let highestRating = 0;
 
                     for (const shoe of filteredShoes) {
-                        const commentsResponse = await fetch(`https://localhost:11185/CommentsRatings/comments/${shoe.id}`);
+                        let baseUrl;
+
+                        if (process.env.NODE_ENV === 'development') {
+                            // If in debug mode
+                            baseUrl = 'localhost';
+                        } else {
+                            // If in release mode
+                            baseUrl = 'commentsratings';
+                        }
+
+                        const commentsResponse = await fetch(`https://${baseUrl}:11185/CommentsRatings/comments/${shoe.id}`);
                         const commentsJson = await commentsResponse.json();
                         commentsData[shoe.id] = commentsJson;
 
@@ -48,7 +68,7 @@ const CommentsRatings = () => {
                             highestComment = Math.max(highestComment, commentId);
                         });
 
-                        const ratingsResponse = await fetch(`https://localhost:11185/CommentsRatings/ratings/${shoe.id}`);
+                        const ratingsResponse = await fetch(`https://${baseUrl}:11185/CommentsRatings/ratings/${shoe.id}`);
                         const ratingsJson = await ratingsResponse.json();
                         ratingsData[shoe.id] = ratingsJson;
 
@@ -89,7 +109,17 @@ const CommentsRatings = () => {
                 timestamp: new Date().toISOString(),
             });
 
-            const response = await fetch('https://localhost:11185/CommentsRatings/comments', {
+            let baseUrl;
+
+            if (process.env.NODE_ENV === 'development') {
+                // If in debug mode
+                baseUrl = 'localhost';
+            } else {
+                // If in release mode
+                baseUrl = 'commentsratings';
+            }
+
+            const response = await fetch(`https://${baseUrl}:11185/CommentsRatings/comments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +132,7 @@ const CommentsRatings = () => {
             if (response.ok) {
                 setNewComment('');
                 setHighestCommentId(highestCommentId + 1);
-                const commentsResponse = await fetch(`https://localhost:11185/CommentsRatings/comments/${productId}`);
+                const commentsResponse = await fetch(`https://${baseUrl}:11185/CommentsRatings/comments/${productId}`);
                 const commentsJson = await commentsResponse.json();
                 setComments((prevComments) => ({ ...prevComments, [productId]: commentsJson }));
             } else {
@@ -115,12 +145,22 @@ const CommentsRatings = () => {
 
     const handleCommentDelete = async (productId, commentId) => {
         try {
-            const response = await fetch(`https://localhost:11185/CommentsRatings/comments/${commentId}`, {
+            let baseUrl;
+
+            if (process.env.NODE_ENV === 'development') {
+                // If in debug mode
+                baseUrl = 'localhost';
+            } else {
+                // If in release mode
+                baseUrl = 'commentsratings';
+            }
+
+            const response = await fetch(`https://${baseUrl}:11185/CommentsRatings/comments/${commentId}`, {
                 method: 'DELETE',
             });
 
             if (response.ok) {
-                const commentsResponse = await fetch(`https://localhost:11185/CommentsRatings/comments/${productId}`);
+                const commentsResponse = await fetch(`https://${baseUrl}:11185/CommentsRatings/comments/${productId}`);
                 const commentsJson = await commentsResponse.json();
                 setComments((prevComments) => ({ ...prevComments, [productId]: commentsJson }));
             } else {
@@ -133,7 +173,17 @@ const CommentsRatings = () => {
 
     const handleRatingSubmit = async (productId) => {
         try {
-            const response = await fetch('https://localhost:11185/CommentsRatings/ratings', {
+            let baseUrl;
+
+            if (process.env.NODE_ENV === 'development') {
+                // If in debug mode
+                baseUrl = 'localhost';
+            } else {
+                // If in release mode
+                baseUrl = 'commentsratings';
+            }
+
+            const response = await fetch(`https://${baseUrl}:11185/CommentsRatings/ratings`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -148,7 +198,7 @@ const CommentsRatings = () => {
             });
 
             if (response.ok) {
-                const ratingsResponse = await fetch(`https://localhost:11185/CommentsRatings/ratings/${productId}`);
+                const ratingsResponse = await fetch(`https://${baseUrl}:11185/CommentsRatings/ratings/${productId}`);
                 setHighestRatingId(highestRatingId + 1);
                 const ratingsJson = await ratingsResponse.json();
                 setRatings((prevRatings) => ({ ...prevRatings, [productId]: ratingsJson }));
@@ -162,12 +212,22 @@ const CommentsRatings = () => {
 
     const handleRatingDelete = async (productId, ratingId) => {
         try {
-            const response = await fetch(`https://localhost:11185/CommentsRatings/ratings/${ratingId}`, {
+            let baseUrl;
+
+            if (process.env.NODE_ENV === 'development') {
+                // If in debug mode
+                baseUrl = 'localhost';
+            } else {
+                // If in release mode
+                baseUrl = 'commentsratings';
+            }
+
+            const response = await fetch(`https://${baseUrl}:11185/CommentsRatings/ratings/${ratingId}`, {
                 method: 'DELETE',
             });
 
             if (response.ok) {
-                const ratingsResponse = await fetch(`https://localhost:11185/CommentsRatings/ratings/${productId}`);
+                const ratingsResponse = await fetch(`https://${baseUrl}:11185/CommentsRatings/ratings/${productId}`);
                 const ratingsJson = await ratingsResponse.json();
                 setRatings((prevRatings) => ({ ...prevRatings, [productId]: ratingsJson }));
             } else {

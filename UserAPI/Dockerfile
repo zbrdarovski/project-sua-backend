@@ -11,7 +11,7 @@ WORKDIR /app
 # Copy the application files from your local machine to the container
 COPY . /app
 
-EXPOSE 5000
+EXPOSE 11181
 EXPOSE 80
 EXPOSE 443
 

@@ -55,7 +55,17 @@ function Profile() {
             // Retrieve token from storage
             const token = localStorage.getItem('token');
 
-            const response = await fetch('http://localhost:11181/api/users/change-password', {
+            let baseUrl;
+
+            if (process.env.NODE_ENV === 'development') {
+                // If in debug mode
+                baseUrl = 'localhost';
+            } else {
+                // If in release mode
+                baseUrl = 'userapi';
+            }
+
+            const response = await fetch(`http://${baseUrl}:11181/api/users/change-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

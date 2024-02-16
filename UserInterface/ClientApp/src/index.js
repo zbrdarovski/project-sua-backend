@@ -12,7 +12,7 @@ import CommentsRatings from './CommentsRatings';
 import Payments from './Payments';
 import Rabbit from './Rabbit';
 import Stats from './Stats';
-import statsHaramija from './statsHaramija';
+import StatsHaramija from './StatsHaramija';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -29,7 +29,7 @@ root.render(
                 <Route path="/payments" element={<Payments />} />
                 <Route path="/rabbit" element={<Rabbit />} />
                 <Route path="/stats" element={<Stats />} />
-                <Route path="/statsharamija" element={<statsHaramija />} />
+                <Route path="/statsharamija" element={<StatsHaramija />} />
             </Routes>
         </Router>
     </React.StrictMode>

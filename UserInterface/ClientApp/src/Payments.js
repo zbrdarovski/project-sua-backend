@@ -11,7 +11,17 @@ const PaymentHistory = () => {
     useEffect(() => {
         const fetchPayments = async () => {
             try {
-                const response = await fetch(`https://localhost:11183/CartPayment/payments/${userId}`, {
+                let baseUrl;
+
+                if (process.env.NODE_ENV === 'development') {
+                    // If in debug mode
+                    baseUrl = 'localhost';
+                } else {
+                    // If in release mode
+                    baseUrl = 'cartpaymentapi';
+                }
+
+                const response = await fetch(`https://${baseUrl}:11183/CartPayment/payments/${userId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

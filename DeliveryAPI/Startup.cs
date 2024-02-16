@@ -36,15 +36,30 @@ public class Startup
 
         services.AddHealthChecks();
 
-        // Configure CORS
+        // Retrieve the environment variable indicating whether the app is in development mode
+        string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+        // Define the frontend URL based on the environment
+        string frontendUrl;
+        if (environment == "Development")
+        {
+            frontendUrl = "http://localhost:11180"; // Use localhost in development mode
+        }
+        else
+        {
+            frontendUrl = "https://userinterface:11180"; // Use your production URL in other environments
+        }
+
+        // Add CORS services
         services.AddCors(options =>
         {
             options.AddPolicy("AllowSpecificOrigin",
                 builder =>
                 {
-                    builder.WithOrigins("http://localhost:11180") // Update with your frontend URL
+                    builder.WithOrigins(frontendUrl) // Add your frontend URL here
                            .AllowAnyHeader()
-                           .AllowAnyMethod();
+                           .AllowAnyMethod()
+                           .AllowCredentials();
                 });
         });
 

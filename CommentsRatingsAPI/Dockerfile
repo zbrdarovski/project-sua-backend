@@ -12,7 +12,7 @@ WORKDIR /app
 # Copy the build output from your local machine to the container
 COPY ./bin/Release/net6.0/ /app/
 
-EXPOSE 5000
+EXPOSE 11185
 EXPOSE 80
 EXPOSE 443
 

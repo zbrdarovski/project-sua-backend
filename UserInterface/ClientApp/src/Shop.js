@@ -16,7 +16,17 @@ const Shop = () => {
     useEffect(() => {
         const fetchAllShoes = async () => {
             try {
-                const allShoesResponse = await fetch('http://localhost:5000/Inventory');
+                let baseUrl;
+
+                if (process.env.NODE_ENV === 'development') {
+                    // If in debug mode
+                    baseUrl = 'localhost';
+                } else {
+                    // If in release mode
+                    baseUrl = 'inventoryapi';
+                }
+
+                const allShoesResponse = await fetch(`https://${baseUrl}:11184/Inventory`);
                 if (!allShoesResponse.ok) {
                     console.error('Failed to fetch all shoes:', allShoesResponse.statusText);
                     const errorText = await allShoesResponse.text();
@@ -33,11 +43,20 @@ const Shop = () => {
                     const commentsData = {};
                     const ratingsData = {};
                     for (const shoe of filteredShoes) {
-                        const commentsResponse = await fetch(`https://localhost:11185/CommentsRatings/comments/${shoe.id}`);
+                        let baseUrl;
+
+                        if (process.env.NODE_ENV === 'development') {
+                            // If in debug mode
+                            baseUrl = 'localhost';
+                        } else {
+                            // If in release mode
+                            baseUrl = 'commentsratings';
+                        }
+                        const commentsResponse = await fetch(`https://${baseUrl}:11185/CommentsRatings/comments/${shoe.id}`);
                         const commentsJson = await commentsResponse.json();
                         commentsData[shoe.id] = commentsJson;
 
-                        const ratingsResponse = await fetch(`https://localhost:11185/CommentsRatings/ratings/${shoe.id}`);
+                        const ratingsResponse = await fetch(`https://${baseUrl}:11185/CommentsRatings/ratings/${shoe.id}`);
                         const ratingsJson = await ratingsResponse.json();
                         ratingsData[shoe.id] = ratingsJson;
                     }

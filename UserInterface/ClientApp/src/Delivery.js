@@ -12,7 +12,16 @@ const Delivery = () => {
     useEffect(() => {
         const fetchAllDeliveries = async () => {
             try {
-                const allDeliveriesResponse = await fetch('http://localhost:11182/api/deliveries');
+                let baseUrl;
+
+                if (process.env.NODE_ENV === 'development') {
+                    // If in debug mode
+                    baseUrl = 'localhost';
+                } else {
+                    // If in release mode
+                    baseUrl = 'deliveryapi';
+                }
+                const allDeliveriesResponse = await fetch(`http://${baseUrl}:11182/api/deliveries`);
                 if (!allDeliveriesResponse.ok) {
                     console.error('Failed to fetch all deliveries:', allDeliveriesResponse.statusText);
                     return;
@@ -58,8 +67,18 @@ const Delivery = () => {
                 const geoY = Math.random();
                 const deliveryTime = new Date().toISOString();
 
+                let baseUrl;
+
+                if (process.env.NODE_ENV === 'development') {
+                    // If in debug mode
+                    baseUrl = 'localhost';
+                } else {
+                    // If in release mode
+                    baseUrl = 'cartpaymentapi';
+                }
+
                 // Create a new payment first
-                const paymentResponse = await fetch('https://localhost:11183/CartPayment/payment/add', {
+                const paymentResponse = await fetch(`https://${baseUrl}:11183/CartPayment/payment/add`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -91,7 +110,16 @@ const Delivery = () => {
                 }
 
                 try {
-                    const deliveryResponse = await fetch('http://localhost:11182/api/deliveries', {
+                    let baseUrl;
+
+                    if (process.env.NODE_ENV === 'development') {
+                        // If in debug mode
+                        baseUrl = 'localhost';
+                    } else {
+                        // If in release mode
+                        baseUrl = 'deliveryapi';
+                    }
+                    const deliveryResponse = await fetch(`http://${baseUrl}:11182/api/deliveries`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -107,10 +135,18 @@ const Delivery = () => {
                         }),
                     });
 
+                    if (process.env.NODE_ENV === 'development') {
+                        // If in debug mode
+                        baseUrl = 'localhost';
+                    } else {
+                        // If in release mode
+                        baseUrl = 'inventoryapi';
+                    }
+
                     if (deliveryResponse.ok) {
                         // Update inventory items and navigate accordingly
                         for (const item of cart) {
-                            const inventoryUpdateResponse = await fetch(`http://localhost:5000/Inventory/${item.id}`, {
+                            const inventoryUpdateResponse = await fetch(`https://${baseUrl}:11184/Inventory/${item.id}`, {
                                 method: 'PUT',
                                 headers: {
                                     'Content-Type': 'application/json',

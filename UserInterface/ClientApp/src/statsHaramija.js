@@ -1,4 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './statsHaramija.css';
+import './StatsHaramija.css';
 
+export default null;

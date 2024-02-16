@@ -32,7 +32,17 @@ function Login() {
         }
 
         try {
-            const response = await fetch('http://localhost:11181/api/users/login', {
+            let baseUrl;
+
+            if (process.env.NODE_ENV === 'development') {
+                // If in debug mode
+                baseUrl = 'localhost';
+            } else {
+                // If in release mode
+                baseUrl = 'userapi';
+            }
+
+            const response = await fetch(`http://${baseUrl}:11181/api/users/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

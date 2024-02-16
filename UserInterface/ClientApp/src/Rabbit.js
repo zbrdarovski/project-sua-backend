@@ -7,7 +7,15 @@ const Rabbit = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
-    
+    let baseUrl;
+
+    if (process.env.NODE_ENV === 'development') {
+        // If in debug mode
+        baseUrl = 'localhost';
+    } else {
+        // If in release mode
+        baseUrl = 'loggingapi';
+    }
 
     // Function to fetch logs based on start and end dates
     useEffect(() => {
@@ -16,9 +24,8 @@ const Rabbit = () => {
 
     const fetchLogsBetweenDates = async () => {
         try {
-            // Check if start and end dates are provided
             if (startDate && endDate) {
-                const response = await fetch(`https://localhost:11186/Logging/logs/${startDate}/${endDate}`, {
+                const response = await fetch(`https://${baseUrl}:11186/Logging/logs/${startDate}/${endDate}`, {
                     method: 'GET',
                     headers: {
                         'accept': '*/*'
@@ -32,9 +39,9 @@ const Rabbit = () => {
                 const data = await response.json();
                 setLogsBetweenDates(data); // Update logsBetweenDates state
             } else {
-                // Clear logsBetweenDates state if start and end dates are not provided
-                setLogsBetweenDates([]);
+                setLogsBetweenDates([]); // Update logsBetweenDates state
             }
+
         } catch (error) {
             console.error('Error:', error.message);
         }
@@ -42,7 +49,7 @@ const Rabbit = () => {
 
     const sendLogsToMongo = async () => {
         try {
-            const response = await fetch('https://localhost:11186/Logging/postLogs', {
+            const response = await fetch(`https://${baseUrl}:11186/Logging/postLogs`, {
                 method: 'POST',
                 headers: {
                     'accept': '*/*',
@@ -64,7 +71,7 @@ const Rabbit = () => {
 
     const deleteAllLogs = async () => {
         try {
-            const response = await fetch('https://localhost:11186/Logging/clearLogs', {
+            const response = await fetch(`https://${baseUrl}:11186/Logging/clearLogs`, {
                 method: 'DELETE',
                 headers: {
                     'accept': '*/*'

@@ -9,8 +9,17 @@ const DeliveryList = () => {
     const userId = localStorage.getItem('userId');
 
     useEffect(() => {
+        let baseUrl;
+
+        if (process.env.NODE_ENV === 'development') {
+            // If in debug mode
+            baseUrl = 'localhost';
+        } else {
+            // If in release mode
+            baseUrl = 'deliveryapi';
+        }
         // Fetch data from the API endpoint
-        fetch('http://localhost:11182/api/deliveries/')
+        fetch(`http://${baseUrl}:11182/api/deliveries/`)
             .then(response => response.json())
             .then(data => {
                 // Filter deliveries based on userId
