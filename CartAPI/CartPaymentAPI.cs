@@ -97,6 +97,8 @@ var app = builder.Build();
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "CartPaymentAPI");
     });
 
+app.UseMiddleware<ApiRequestMiddleware>();
+
 app.UseRouting();
 app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();

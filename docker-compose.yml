@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  cartpaymentapi:
+    build: ./CartAPI
+    ports:
+      - "11180:5000"
+    environment:
+      RABBITMQ_HOSTNAME: amqp://rabbit:5672
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
+
+  inventoryapi:
+    build: ./InventoryAPI
+    ports:
+      - "11181:44309"
+    environment:
+      RABBITMQ_HOSTNAME: amqp://rabbit:5672
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
+
+  commentsratings:
+    build: ./CommentsRatingsAPI
+    ports:
+      - "11182:5000"
+    environment:
+      RABBITMQ_HOSTNAME: amqp://rabbit:5672
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
+
+  deliveryapi:
+    build: ./DeliveryAPI
+    ports:
+      - "11183:5000"
+    environment:
+      RABBITMQ_HOSTNAME: amqp://rabbit:5672
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
+
+  loggingapi:
+    build: ./LoggingAPI
+    ports:
+      - "11184:5000"
+    environment:
+      RABBITMQ_HOSTNAME: amqp://rabbit:5672
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
+
+  userapi:
+    build: ./UserAPI
+    ports:
+      - "11185:5000"
+    environment:
+      RABBITMQ_HOSTNAME: amqp://rabbit:5672
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
+
+  userinterface:
+    build: ./UserInterface
+    ports:
+      - "11186:80"
+    environment:
+      RABBITMQ_HOSTNAME: amqp://rabbit:5672
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
+
+networks:
+  default:
+    driver: bridge
