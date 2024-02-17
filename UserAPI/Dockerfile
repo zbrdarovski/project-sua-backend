@@ -15,6 +15,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS runtime
 WORKDIR /app
 COPY --from=build /app/out ./
 EXPOSE 11181
+ENV RABBITMQ_HOSTNAME=studentdocker.informatika.uni-mb.si
+ENV RABBITMQ_PORT=5672
+ENV RABBITMQ_USERNAME=student
+ENV RABBITMQ_PASSWORD=student123
 ENV MONGODB_CONNECTION_STRING=mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority
 
 # Set the command to run your app
