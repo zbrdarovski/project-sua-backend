@@ -114,6 +114,8 @@ builder.Services.AddSingleton<RabbitMQService>();
 
 var app = builder.Build();
 
+app.UseMiddleware<ApiRequestMiddleware>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
