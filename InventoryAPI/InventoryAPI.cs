@@ -6,6 +6,8 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -65,14 +67,22 @@ var mongoDbConnectionString = builder.Configuration.GetValue<string>("MONGODB_CO
 
 builder.Services.AddSingleton<InventoryRepository>(serviceProvider =>
 {
-    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-    return new InventoryRepository(configuration);
+    string mongoDbConnectionString;
+
+    if (environment == "Development")
+    {
+        // In Development, use the connection string from appsettings.json
+        mongoDbConnectionString = builder.Configuration.GetConnectionString("MongoDBConnection");
+    }
+    else
+    {
+        // In non-Development, use the environment variable
+        mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? "your_fallback_connection_string";
+    }
+    return new InventoryRepository(mongoDbConnectionString);
 });
 
 builder.Services.AddLogging();
-
-// Retrieve the environment variable indicating whether the app is in development mode
-string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
 // Define the frontend URL based on the environment
 string frontendUrl;

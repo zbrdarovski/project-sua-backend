@@ -8,9 +8,9 @@ namespace InventoryAPI
     {
         private readonly IMongoCollection<Inventory> _inventoryCollection;
 
-        public InventoryRepository(IConfiguration configuration)
+        public InventoryRepository(string connectionString)
         {
-            var client = new MongoClient(configuration.GetConnectionString("MongoDBConnection"));
+            var client = new MongoClient(connectionString);
             var database = client.GetDatabase("inventory");
             _inventoryCollection = database.GetCollection<Inventory>("inventory");
         }

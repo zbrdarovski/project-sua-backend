@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
 // Add services to the container.
 
@@ -62,18 +63,25 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-//var mongoDbConnectionString = builder.Configuration.GetValue<string>("MONGODB_CONNECTION_STRING");
-
 builder.Services.AddSingleton<CartPaymentRepository>(serviceProvider =>
 {
-    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-    return new CartPaymentRepository(configuration);
+    string mongoDbConnectionString;
+
+    if (environment == "Development")
+    {
+        // In Development, use the connection string from appsettings.json
+        mongoDbConnectionString = builder.Configuration.GetConnectionString("MongoDBConnection");
+    }
+    else
+    {
+        // In non-Development, use the environment variable
+        mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? "your_fallback_connection_string";
+    }
+
+    return new CartPaymentRepository(mongoDbConnectionString);
 });
 
 builder.Services.AddLogging();
-
-// Retrieve the environment variable indicating whether the app is in development mode
-string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
 // Define the frontend URL based on the environment
 string frontendUrl;

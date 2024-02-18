@@ -14,9 +14,9 @@ namespace CartPaymentAPI
         private readonly IMongoCollection<Cart> _cartCollection;
         private readonly IMongoCollection<Payment> _paymentCollection;
 
-        public CartPaymentRepository(IConfiguration configuration)
+        public CartPaymentRepository(string connectionString)
         {
-            var client = new MongoClient(configuration.GetConnectionString("MongoDBConnection"));
+            var client = new MongoClient(connectionString);
             var database = client.GetDatabase("cartpayment");
             _cartCollection = database.GetCollection<Cart>("cart");
             _paymentCollection = database.GetCollection<Payment>("payment");

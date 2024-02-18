@@ -9,9 +9,9 @@ namespace CommentsRatingsAPI
         private readonly IMongoCollection<Comment> _commentsCollection;
         private readonly IMongoCollection<Rating> _ratingsCollection;
 
-        public CommentsRatingsRepository(IConfiguration configuration)
+        public CommentsRatingsRepository(string connectionString)
         {
-            var client = new MongoClient(configuration.GetConnectionString("MongoDBConnection"));
+            var client = new MongoClient(connectionString);
             var database = client.GetDatabase("commentsratings");
             _commentsCollection = database.GetCollection<Comment>("comments");
             _ratingsCollection = database.GetCollection<Rating>("ratings");
