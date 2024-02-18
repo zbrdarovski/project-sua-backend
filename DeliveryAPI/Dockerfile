@@ -22,6 +22,8 @@ ENV RABBITMQ_USERNAME=student
 ENV RABBITMQ_PASSWORD=student123
 ENV MONGODB_CONNECTION_STRING=mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority
 
+ENV ASPNETCORE_URLS=http://+:11182
+
 # Set the command to run your app using the dotnet command
 # Replace 'MyApp.dll' with the name of your application's DLL
 ENTRYPOINT ["dotnet", "DeliveryAPI.dll"]
