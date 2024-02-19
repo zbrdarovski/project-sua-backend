@@ -13,20 +13,21 @@ WORKDIR /app
 COPY ./bin/Release/net6.0/ /app/
 
 EXPOSE 11180
+EXPOSE 1189
 EXPOSE 80
 EXPOSE 443
 
-ENV RABBITMQ_HOSTNAME=studentdocker.informatika.uni-mb.si
+ENV RABBITMQ_HOSTNAME=amqp://studentdocker.informatika.uni-mb.si:5672
 ENV RABBITMQ_PORT=5672
 ENV RABBITMQ_USERNAME=student
 ENV RABBITMQ_PASSWORD=student123
 ENV MONGODB_CONNECTION_STRING=mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority
 
-ENV ASPNETCORE_URLS=http://+:11180
+ENV ASPNETCORE_URLS=http://+:1180
 
 # Set the command to run your app using the dotnet command
+# Replace 'MyApp.dll' with the name of your application's DLL
 ENTRYPOINT ["dotnet", "UserInterface.dll"]
-
 
 
 ##See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.

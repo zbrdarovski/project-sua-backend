@@ -3,23 +3,26 @@
 #Depending on the operating system of the host machines(s) that will build or run the containers, the image specified in the FROM statement may need to be changed.
 #For more information, please see https://aka.ms/containercompat
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine
+
+# Set the working directory in the container
 WORKDIR /app
+
+# Copy the build output from your local machine to the container
+COPY ./bin/Release/net6.0/ /app/
+
+EXPOSE 11187
+EXPOSE 1187
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
-COPY ["StatsBrdarovski/StatsBrdarovski.csproj", "StatsBrdarovski/"]
-RUN dotnet restore "StatsBrdarovski/StatsBrdarovski.csproj"
-COPY . .
-WORKDIR "/src/StatsBrdarovski"
-RUN dotnet build "StatsBrdarovski.csproj" -c Release -o /app/build
+ENV RABBITMQ_HOSTNAME=amqp://studentdocker.informatika.uni-mb.si:5672
+ENV RABBITMQ_PORT=5672
+ENV RABBITMQ_USERNAME=student
+ENV RABBITMQ_PASSWORD=student123
+ENV MONGODB_CONNECTION_STRING=mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority
 
-FROM build AS publish
-RUN dotnet publish "StatsBrdarovski.csproj" -c Release -o /app/publish /p:UseAppHost=false
+ENV ASPNETCORE_URLS=http://+:1187
 
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
+# Set the command to run your app using the dotnet command
 ENTRYPOINT ["dotnet", "StatsBrdarovski.dll"]
