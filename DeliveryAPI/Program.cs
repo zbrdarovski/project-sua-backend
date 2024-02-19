@@ -75,19 +75,6 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHealthChecks();
 
-// Add CORS services
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAllOrigins",
-        builder =>
-        {
-            builder.AllowAnyOrigin() // Allow all origins
-                   .AllowAnyHeader()
-                   .AllowAnyMethod()
-                   .AllowCredentials();
-        });
-});
-
 builder.Services.AddSingleton<MongoDbContext>(sp =>
 {
     var configuration = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
@@ -111,15 +98,12 @@ builder.Services.AddSingleton(rabbitMQService);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "DeliveryAPI");
-        c.RoutePrefix = "swagger"; // This sets the route prefix for Swagger UI
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "DeliveryAPI");
+    c.RoutePrefix = "swagger"; // This sets the route prefix for Swagger UI
+});
 
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
@@ -383,7 +367,7 @@ app.MapPut("/api/deliveries/update-address/{id}", (string id, UpdateAddressDto a
 
         return Results.Ok(new { Message = "Address updated successfully" });
     }
-    catch (Exception ex) 
+    catch (Exception ex)
     {
         logger.LogError(ex, "Error updating address");
         return Results.BadRequest(new { Message = "Error updating address" });
