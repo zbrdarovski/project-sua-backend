@@ -53,13 +53,12 @@ public class Startup
         // Add CORS services
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowSpecificOrigin",
+            options.AddPolicy("AllowAllOrigins",
                 builder =>
                 {
-                    builder.WithOrigins(frontendUrl) // Add your frontend URL here
+                    builder.AllowAnyOrigin() // Allow all origins
                            .AllowAnyHeader()
-                           .AllowAnyMethod()
-                           .AllowCredentials();
+                           .AllowAnyMethod();
                 });
         });
 

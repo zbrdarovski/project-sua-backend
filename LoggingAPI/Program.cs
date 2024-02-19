@@ -1,4 +1,5 @@
 using LoggingAPI;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 

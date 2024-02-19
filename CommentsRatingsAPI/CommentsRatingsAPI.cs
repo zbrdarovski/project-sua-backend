@@ -79,7 +79,7 @@ builder.Services.AddSingleton<CommentsRatingsRepository>(serviceProvider =>
     else
     {
         // In non-Development, use the environment variable
-        mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? "your_fallback_connection_string";
+        mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority";
     }
     return new CommentsRatingsRepository(mongoDbConnectionString);
 });
