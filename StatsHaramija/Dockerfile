@@ -11,8 +11,8 @@ WORKDIR /app
 # Copy the build output from your local machine to the container
 COPY ./bin/Release/net6.0/ /app/
 
-EXPOSE 11186
-EXPOSE 1186
+EXPOSE 11188
+EXPOSE 1188
 EXPOSE 80
 EXPOSE 443
 
@@ -22,7 +22,7 @@ ENV RABBITMQ_USERNAME=student
 ENV RABBITMQ_PASSWORD=student123
 ENV MONGODB_CONNECTION_STRING=mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority
 
-ENV ASPNETCORE_URLS=http://+:1186
+ENV ASPNETCORE_URLS=http://+:1188
 
 # Set the command to run your app using the dotnet command
-ENTRYPOINT ["dotnet", "LoggingAPI.dll"]
+ENTRYPOINT ["dotnet", "StatsHaramija.dll"]
