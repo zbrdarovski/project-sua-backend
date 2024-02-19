@@ -13,9 +13,11 @@ const StatsHaramija = () => {
         fetchCallsPerEndpoint();
     }, []);
 
+    const baseUrl = process.env.NODE_ENV === 'development' ? 'https://localhost:11188' : 'https://statsharamija.example.com';
+
     const fetchLastCalledEndpoint = async () => {
         try {
-            const response = await axios.get('YOUR_BACKEND_URL/statistics/last-called');
+            const response = await axios.get(`${baseUrl}/StatsHaramija/GetLastEndpoint`);
             setLastCalledEndpoint(response.data);
         } catch (error) {
             console.error('Error fetching last called endpoint:', error);
@@ -24,7 +26,7 @@ const StatsHaramija = () => {
 
     const fetchMostFrequentlyCalledEndpoint = async () => {
         try {
-            const response = await axios.get('YOUR_BACKEND_URL/statistics/most-frequent');
+            const response = await axios.get(`${baseUrl}/StatsHaramija/GetMostCalledEndpoint`);
             setMostFrequentEndpoint(response.data);
         } catch (error) {
             console.error('Error fetching most frequently called endpoint:', error);
@@ -33,7 +35,7 @@ const StatsHaramija = () => {
 
     const fetchCallsPerEndpoint = async () => {
         try {
-            const response = await axios.get('YOUR_BACKEND_URL/statistics/calls-per-endpoint');
+            const response = await axios.get(`${baseUrl}/StatsHaramija/GetCallsPerEndpoint`);
             setCallsPerEndpoint(response.data);
         } catch (error) {
             console.error('Error fetching calls per endpoint:', error);
@@ -42,7 +44,7 @@ const StatsHaramija = () => {
 
     const updateData = async (service) => {
         try {
-            await axios.post('YOUR_BACKEND_URL/statistics/update-data', { KlicanaStoritev: service });
+            await axios.post(`${baseUrl}/StatsHaramija/PostUpdate`, { klicanaStoritev: service });
         } catch (error) {
             console.error('Error updating data:', error);
         }

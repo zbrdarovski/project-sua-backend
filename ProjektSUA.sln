@@ -19,7 +19,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoggingAPI", "LoggingAPI\Lo
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "StatsAPI", "StatsAPI\StatsAPI.esproj", "{BA21B6B5-E819-4061-B300-5FE0953666E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatzAPI", "StatzAPI\StatzAPI.csproj", "{AE48D15D-F688-410D-B392-768982A32198}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StatzAPI", "StatzAPI\StatzAPI.csproj", "{AE48D15D-F688-410D-B392-768982A32198}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StatsHaramija", "StatsHaramija\StatsHaramija.csproj", "{7468739B-9DA1-4336-BB1F-4AB2E573E3CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StatsBrdarovski", "StatsBrdarovski\StatsBrdarovski.csproj", "{CE0DDC8D-F0B7-498E-8911-E281B661C094}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +69,14 @@ Global
 		{AE48D15D-F688-410D-B392-768982A32198}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE48D15D-F688-410D-B392-768982A32198}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE48D15D-F688-410D-B392-768982A32198}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7468739B-9DA1-4336-BB1F-4AB2E573E3CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7468739B-9DA1-4336-BB1F-4AB2E573E3CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7468739B-9DA1-4336-BB1F-4AB2E573E3CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7468739B-9DA1-4336-BB1F-4AB2E573E3CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE0DDC8D-F0B7-498E-8911-E281B661C094}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE0DDC8D-F0B7-498E-8911-E281B661C094}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE0DDC8D-F0B7-498E-8911-E281B661C094}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE0DDC8D-F0B7-498E-8911-E281B661C094}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

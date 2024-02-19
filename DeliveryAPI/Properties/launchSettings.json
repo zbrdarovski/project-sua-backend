@@ -23,7 +23,7 @@
       "launchBrowser": true,
       "launchUrl": "http://{ServiceHost}:{ServicePort}/swagger",
       "environmentVariables": {
-        "ASPNETCORE_URLS": "http://+:80"
+        "ASPNETCORE_URLS": "http://+:11182"
       },
       "publishAllPorts": true,
       "useSSL": false

@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "CommentsRatingsAPI": {
+    "StatsHaramija": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "swagger",
@@ -8,7 +8,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:11185;http://localhost:1185"
+      "applicationUrl": "https://localhost:11188;http://localhost:1188"
     },
     "IIS Express": {
       "commandName": "IISExpress",
@@ -23,7 +23,7 @@
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
       "environmentVariables": {
-        "ASPNETCORE_URLS": "https://+:11185;http://+:1185"
+        "ASPNETCORE_URLS": "https://+:11188;http://+:1188"
       },
       "publishAllPorts": true,
       "useSSL": true
@@ -34,8 +34,8 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:59254",
-      "sslPort": 11185
+      "applicationUrl": "http://localhost:48339",
+      "sslPort": 11188
     }
   }
 }
