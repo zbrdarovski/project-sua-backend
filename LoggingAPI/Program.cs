@@ -15,27 +15,13 @@ builder.Services.AddSingleton<RabbitMQService>();
 builder.Services.AddSingleton<MongoDbContext>(sp => new MongoDbContext(builder.Configuration));
 builder.Services.AddScoped<LogDatabaseService>();
 
-// Retrieve the environment variable indicating whether the app is in development mode
-string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
-// Define the frontend URL based on the environment
-string frontendUrl;
-if (environment == "Development")
-{
-    frontendUrl = "http://localhost:11180"; // Use localhost in development mode
-}
-else
-{
-    frontendUrl = "https://userinterface:11180"; // Use your production URL in other environments
-}
-
 // Add CORS services
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin",
+    options.AddPolicy("AllowAllOrigins",
         builder =>
         {
-            builder.WithOrigins(frontendUrl) // Add your frontend URL here
+            builder.AllowAnyOrigin() // Allow all origins
                    .AllowAnyHeader()
                    .AllowAnyMethod()
                    .AllowCredentials();
@@ -55,6 +41,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseCors("AllowSpecificOrigin");
+app.UseCors("AllowAllOrigins");
 
 app.Run();
