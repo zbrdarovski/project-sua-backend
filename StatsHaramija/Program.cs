@@ -17,6 +17,17 @@ builder.Services.AddSingleton<StatsRepository>(serviceProvider =>
 
 var app = builder.Build();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        builder =>
+        {
+            builder.AllowAnyOrigin() // Allow all origins
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
 // Configure the HTTP request pipeline.
 
 app.UseSwagger();
