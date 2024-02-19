@@ -84,7 +84,7 @@ public class Startup
                 throw new ArgumentNullException(nameof(mongoDbSettings.DatabaseName), "MongoDB database name is missing in configuration.");
             }
 
-            return new MongoDbContext(mongoDbSettings.ConnectionString, mongoDbSettings.DatabaseName);
+            return new MongoDbContext(Configuration);
         });
 
         // Add logging services
