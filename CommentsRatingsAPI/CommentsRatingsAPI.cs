@@ -86,24 +86,13 @@ builder.Services.AddSingleton<CommentsRatingsRepository>(serviceProvider =>
 
 builder.Services.AddLogging();
 
-// Define the frontend URL based on the environment
-string frontendUrl;
-if (environment == "Development")
-{
-    frontendUrl = "http://localhost:11180"; // Use localhost in development mode
-}
-else
-{
-    frontendUrl = "https://userinterface:11180"; // Use your production URL in other environments
-}
-
 // Add CORS services
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin",
+    options.AddPolicy("AllowAllOrigins",
         builder =>
         {
-            builder.WithOrigins(frontendUrl) // Add your frontend URL here
+            builder.AllowAnyOrigin() // Allow all origins
                    .AllowAnyHeader()
                    .AllowAnyMethod()
                    .AllowCredentials();
@@ -125,7 +114,7 @@ app.UseSwaggerUI(c =>
 
 
 app.UseRouting();
-app.UseCors("AllowSpecificOrigin");
+app.UseCors("AllowAllOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 
