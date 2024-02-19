@@ -75,23 +75,6 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHealthChecks();
 
-builder.Services.AddSingleton<MongoDbContext>(sp =>
-{
-    var configuration = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
-
-    if (configuration?.ConnectionString is null)
-    {
-        throw new ArgumentNullException(nameof(configuration.ConnectionString), "MongoDB connection string is missing in configuration.");
-    }
-
-    if (configuration?.DatabaseName is null)
-    {
-        throw new ArgumentNullException(nameof(configuration.DatabaseName), "MongoDB database name is missing in configuration.");
-    }
-
-    return new MongoDbContext(configuration.ConnectionString, configuration.DatabaseName);
-});
-
 // RabbitMQ
 var rabbitMQService = new RabbitMQService();
 builder.Services.AddSingleton(rabbitMQService);

@@ -1,25 +1,27 @@
-﻿// MongoDbContext.cs
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
+using System;
 
 public class MongoDbContext
 {
-    private readonly IMongoDatabase _database;
+    public IMongoCollection<Delivery> Deliveries { get; }
 
-    public MongoDbContext(string connectionString, string databaseName)
+    public MongoDbContext(IConfiguration configuration)
     {
-        if (connectionString is null)
+        string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var mongoDbConnectionString = configuration.GetValue<string>("MONGODB_CONNECTION_STRING");
+        if (environment == "Development")
         {
-            throw new ArgumentNullException(nameof(connectionString));
+            // In Development, use the connection string from appsettings.json
+            mongoDbConnectionString = configuration.GetConnectionString("MongoDBConnection");
         }
-
-        if (databaseName is null)
+        else
         {
-            throw new ArgumentNullException(nameof(databaseName));
+            // In non-Development, use the environment variable
+            mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority";
         }
+        var client = new MongoClient(configuration.GetConnectionString("MongoDBConnection"));
+        var database = client.GetDatabase("delivery");
 
-        var client = new MongoClient(connectionString);
-        _database = client.GetDatabase(databaseName);
+        Deliveries = database.GetCollection<Delivery>("delivery");
     }
-
-    public IMongoCollection<Delivery> Deliveries => _database.GetCollection<Delivery>("delivery");
 }
