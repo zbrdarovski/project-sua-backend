@@ -26,12 +26,17 @@ namespace CartPaymentAPI
 #else
             _factory = new ConnectionFactory()
             {
-                HostName = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME") ?? "studentdocker.informatika.uni-mb.si",
+                HostName = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME") ?? "amqp://studentdocker.informatika.uni-mb.si",
                 Port = Convert.ToInt32(Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? "5672"),
                 UserName = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME") ?? "student",
                 Password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "student123"
             };
 #endif
+
+            Console.WriteLine("hostname: " + Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME"));
+            Console.WriteLine("port: " + Environment.GetEnvironmentVariable("RABBITMQ_PORT"));
+            Console.WriteLine("username: " + Environment.GetEnvironmentVariable("RABBITMQ_USERNAME"));
+            Console.WriteLine("password: " + Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD"));
 
             _connection = _factory.CreateConnection();
             _channel = _connection.CreateModel();

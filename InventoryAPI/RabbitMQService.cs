@@ -34,6 +34,11 @@ namespace InventoryAPI
             };
 #endif
 
+            Console.WriteLine("hostname: " + Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME"));
+            Console.WriteLine("port: " + Environment.GetEnvironmentVariable("RABBITMQ_PORT"));
+            Console.WriteLine("username: " + Environment.GetEnvironmentVariable("RABBITMQ_USERNAME"));
+            Console.WriteLine("password: " + Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD"));
+
             _connection = _factory.CreateConnection();
             _channel = _connection.CreateModel();
 
