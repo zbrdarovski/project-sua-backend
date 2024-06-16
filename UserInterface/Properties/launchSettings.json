@@ -2,7 +2,6 @@
   "profiles": {
     "ProjektSUA": {
       "commandName": "Project",
-      "launchBrowser": false,
       "launchUrl": "http://localhost:11180",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
@@ -11,7 +10,6 @@
     },
     "IIS Express": {
       "commandName": "IISExpress",
-      "launchBrowser": false,
       "launchUrl": "index.html",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
@@ -19,7 +17,6 @@
     },
     "Docker": {
       "commandName": "Docker",
-      "launchBrowser": false,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/index.html",
       "environmentVariables": {
         "ASPNETCORE_URLS": "https://+:443;http://+:80"
@@ -31,6 +28,10 @@
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "iisSettings": {
     "windowsAuthentication": false,
-    "anonymousAuthentication": true
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:62371/",
+      "sslPort": 44359
+    }
   }
 }
