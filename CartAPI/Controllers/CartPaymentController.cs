@@ -35,6 +35,7 @@ namespace CartAPI.Controllers
 
         // Cart Endpoints
 
+        [Authorize]
         [HttpPost("createcart/{userId}", Name = "CreateCart")]
         public async Task<IActionResult> CreateCartAsync(string userId)
         {
@@ -42,6 +43,7 @@ namespace CartAPI.Controllers
             return CreatedAtRoute("GetCartById", new { cartId = createdCart.Id }, createdCart);
         }
 
+        [Authorize]
         [HttpGet("cart/{cartId}", Name = "GetCartById")]
         public async Task<ActionResult<Cart>> GetCartByIdAsync(string cartId)
         {
@@ -65,6 +67,7 @@ namespace CartAPI.Controllers
             return cart;
         }
 
+        [Authorize]
         [HttpGet("cart/user/{userId}", Name = "GetCartByUserId")]
         public async Task<ActionResult<Cart>> GetCartByUserIdAsync(string userId)
         {
@@ -88,6 +91,7 @@ namespace CartAPI.Controllers
             return cart;
         }
 
+        [Authorize]
         [HttpPut("carts/edit/{cartId}", Name = "EditCartById")]
         public async Task<IActionResult> EditCartAsync(string cartId, [FromBody] Cart updatedCart)
         {
@@ -114,6 +118,7 @@ namespace CartAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("cart/{cartId}/additem", Name = "AddCartItem")]
         public async Task<IActionResult> AddCartItemAsync(string cartId, [FromBody] InventoryItem cartItem)
         {
@@ -131,6 +136,7 @@ namespace CartAPI.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpDelete("cart/{cartId}/removeitem/{cartItemId}", Name = "RemoveCartItemById")]
         public async Task<IActionResult> RemoveCartItemAsync(string cartId, string cartItemId)
         {
@@ -147,6 +153,7 @@ namespace CartAPI.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpDelete("cart/{cartId}", Name = "DeleteCart")]
         public async Task<IActionResult> DeleteCartAsync(string cartId)
         {
@@ -165,6 +172,7 @@ namespace CartAPI.Controllers
 
         // Payment Endpoints
 
+        [Authorize]
         [HttpGet("payments/{userId}", Name = "GetPaymentsByUserId")]
         public async Task<ActionResult<IEnumerable<Payment>>> GetPaymentsByUserId(string userId)
         {
@@ -188,6 +196,7 @@ namespace CartAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("payments", Name = "GetAllPayments")]
         public async Task<ActionResult<IEnumerable<Payment>>> GetAllPayments()
         {
@@ -211,6 +220,7 @@ namespace CartAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("payment/add", Name = "AddPayment")]
         public async Task<IActionResult> AddPaymentAsync([FromBody] Payment payment)
         {
@@ -241,6 +251,7 @@ namespace CartAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete("payment/remove/{paymentId}", Name = "DeletePaymentById")]
         public async Task<IActionResult> DeletePaymentByIdAsync(string paymentId)
         {

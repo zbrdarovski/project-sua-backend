@@ -26,6 +26,7 @@ namespace CommentsRatingsAPI.Controllers
 
         // Comments Endpoints
 
+        [Authorize]
         [HttpGet("comments/{itemId}", Name = "GetCommentsByItemId")]
         public async Task<IEnumerable<Comment>> GetCommentsByItemId(string itemId)
         {
@@ -43,7 +44,7 @@ namespace CommentsRatingsAPI.Controllers
             return comments;
         }
 
-
+        [Authorize]
         [HttpPost("comments", Name = "AddComment")]
         public async Task<IActionResult> AddCommentAsync([FromBody] Comment comment)
         {
@@ -68,6 +69,7 @@ namespace CommentsRatingsAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("comments/{commentId}", Name = "EditCommentById")]
         public async Task<IActionResult> EditCommentAsync(string commentId, [FromBody] string newContent)
         {
@@ -99,6 +101,7 @@ namespace CommentsRatingsAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete("comments/{commentId}", Name = "RemoveCommentById")]
         public async Task<IActionResult> RemoveCommentAsync(string commentId)
         {
@@ -126,6 +129,7 @@ namespace CommentsRatingsAPI.Controllers
 
         // Ratings Endpoints
 
+        [Authorize]
         [HttpGet("ratings/{itemId}", Name = "GetRatingsByItemId")]
         public async Task<List<Rating>> GetRatingsByItemId(string itemId)
         {
@@ -143,7 +147,7 @@ namespace CommentsRatingsAPI.Controllers
             return ratings;
         }
 
-
+        [Authorize]
         [HttpPost("ratings", Name = "AddRating")]
         public async Task<IActionResult> AddRatingAsync([FromBody] Rating rating)
         {
@@ -168,6 +172,7 @@ namespace CommentsRatingsAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("ratings/{ratingId}", Name = "EditRatingById")]
         public async Task<IActionResult> EditRatingAsync(string ratingId, [FromBody] int newValue)
         {
@@ -200,6 +205,7 @@ namespace CommentsRatingsAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpDelete("ratings/{ratingId}", Name = "RemoveRatingById")]
         public async Task<IActionResult> RemoveRatingAsync(string ratingId)
         {
