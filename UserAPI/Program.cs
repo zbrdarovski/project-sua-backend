@@ -70,6 +70,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddSingleton<MongoDbContext>(sp =>
+{
+    var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
+
+    if (mongoDbSettings == null)
+    {
+        throw new ArgumentNullException(nameof(mongoDbSettings), "MongoDB settings are missing in configuration.");
+    }
+
+    if (mongoDbSettings.ConnectionString is null)
+    {
+        throw new ArgumentNullException(nameof(mongoDbSettings.ConnectionString), "MongoDB connection string is missing in configuration.");
+    }
+
+    if (mongoDbSettings.DatabaseName is null)
+    {
+        throw new ArgumentNullException(nameof(mongoDbSettings.DatabaseName), "MongoDB database name is missing in configuration.");
+    }
+
+    return new MongoDbContext(builder.Configuration);
+});
+
 builder.Services.AddAuthorization();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
