@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
-
-namespace CartPaymentAPI
+﻿namespace CartPaymentAPI
 {
     public class ApiRequestMiddleware
     {

@@ -5,27 +5,30 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
 string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-// Add services to the container.
-
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "CartPaymentAPI", Version = "v1" });
 
+    // Define the Swagger security scheme for JWT
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Bearer scheme."
+        Description = "Please enter JWT with Bearer into field",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
     });
 
+    // Define the Swagger security requirement for JWT
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -40,6 +43,8 @@ builder.Services.AddSwaggerGen(c =>
             Array.Empty<string>()
         }
     });
+    // Resolve conflicting actions
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
 var jwtSecret = builder.Configuration.GetValue<string>("JWT_SECRET");
@@ -63,6 +68,8 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
+var mongoDbConnectionString = builder.Configuration.GetValue<string>("MONGODB_CONNECTION_STRING");
+
 builder.Services.AddSingleton<CartPaymentRepository>(serviceProvider =>
 {
     string mongoDbConnectionString;
@@ -77,7 +84,6 @@ builder.Services.AddSingleton<CartPaymentRepository>(serviceProvider =>
         // In non-Development, use the environment variable
         mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? "your_fallback_connection_string";
     }
-
     return new CartPaymentRepository(mongoDbConnectionString);
 });
 
@@ -95,19 +101,18 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Add RabbitMQ
 builder.Services.AddSingleton<RabbitMQService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CartPaymentAPI");
-    });
+app.UseMiddleware<ApiRequestMiddleware>();
 
-// app.UseMiddleware<ApiRequestMiddleware>();
+// Configure the HTTP request pipeline.
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CartPaymentAPI");
+});
 
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
