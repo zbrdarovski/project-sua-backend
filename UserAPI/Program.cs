@@ -7,6 +7,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using UserAPI;
+using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -132,7 +134,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
 
-app.MapPost("/api/users/register", async (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger, [FromServices] IHttpClientFactory httpClientFactory) =>
+app.MapPost("/api/users/register", async (UserRegistrationDto userDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger, [FromServices] IHttpClientFactory httpClientFactory, [FromServices] IConfiguration configuration, [FromServices] IHttpContextAccessor httpContextAccessor) =>
 {
     rabbitMQService.SendLog(new LoggingEntry
     {
@@ -143,6 +145,7 @@ app.MapPost("/api/users/register", async (UserRegistrationDto userDto, [FromServ
         ApplicationName = "UserAPI",
         LogType = "Info"
     });
+
     try
     {
         // Combine the password and salt, then hash the result
@@ -153,17 +156,23 @@ app.MapPost("/api/users/register", async (UserRegistrationDto userDto, [FromServ
 
         logger.LogInformation("User registered successfully: {UserId}", user.Id);
 
+        // Generate JWT token
+        var token = GenerateJwtToken(user.Id, configuration["Jwt:Key"], configuration["Jwt:Issuer"], httpContextAccessor.HttpContext);
+
         // Create a new cart for the user by calling the cart creation API
         var cartCreationUrl = $"https://localhost:11183/CartPayment/createcart/{user.Id}";
 
         using (var httpClient = httpClientFactory.CreateClient())
         {
+            // Add the Bearer token to the request
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             var response = await httpClient.PostAsync(cartCreationUrl, null);
 
             if (response.IsSuccessStatusCode)
             {
                 logger.LogInformation("Cart created successfully for user: {UserId}", user.Id);
-                return Results.Ok(new { Message = "Registration successful" });
+                return Results.Ok(new { Message = "Registration successful", Token = token });
             }
             else
             {
@@ -178,6 +187,7 @@ app.MapPost("/api/users/register", async (UserRegistrationDto userDto, [FromServ
         return Results.BadRequest(new { Message = "Error registering user" });
     }
 }).WithName("Register");
+
 
 string GenerateJwtToken(string userId, string key, string issuer, HttpContext httpContext)
 {

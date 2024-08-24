@@ -1,6 +1,0 @@
-module.exports = {
-    JWT_SECRET: process.env.JWT_SECRET,
-    MONGODB_URI: process.env.MONGODB_URI,
-    RABBITMQ_DEFAULT_USER: process.env.RABBITMQ_DEFAULT_USER,
-    RABBITMQ_DEFAULT_PASS: process.env.RABBITMQ_DEFAULT_PASS
-};

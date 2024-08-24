@@ -15,6 +15,7 @@ namespace CartPaymentAPI
 
         public RabbitMQService()
         {
+
 #if DEBUG
             _factory = new ConnectionFactory()
             {
@@ -26,7 +27,7 @@ namespace CartPaymentAPI
 #else
             _factory = new ConnectionFactory()
             {
-                HostName = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME") ?? "amqp://studentdocker.informatika.uni-mb.si",
+                HostName = Environment.GetEnvironmentVariable("RABBITMQ_HOSTNAME") ?? "studentdocker.informatika.uni-mb.si",
                 Port = Convert.ToInt32(Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? "5672"),
                 UserName = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME") ?? "student",
                 Password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "student123"

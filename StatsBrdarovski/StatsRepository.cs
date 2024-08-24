@@ -1,5 +1,4 @@
-﻿
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using StatsBrdarovski.Models;
 
 namespace StatsBrdarovski
@@ -11,8 +10,8 @@ namespace StatsBrdarovski
         public StatsRepository(string connectionString)
         {
             var client = new MongoClient(connectionString);
-            var database = client.GetDatabase("stats");
-            _statsCollection = database.GetCollection<ApiCallStat>("stats");
+            var database = client.GetDatabase("statsbrdarovski");
+            _statsCollection = database.GetCollection<ApiCallStat>("statsbrdarovski");
         }
 
         /*

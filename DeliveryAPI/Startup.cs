@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -14,8 +13,10 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-
         var key = Encoding.ASCII.GetBytes(Configuration["Jwt:Key"] ?? string.Empty);
+
+        // Add the HTTP client factory
+        services.AddHttpClient();
 
         services.AddHttpContextAccessor();
 
@@ -31,25 +32,6 @@ public class Startup
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                 };
             });
-
-        services.AddAuthorization();
-
-        services.AddHealthChecks();
-
-        // Retrieve the environment variable indicating whether the app is in development mode
-        string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
-        // Add CORS services
-        services.AddCors(options =>
-        {
-            options.AddPolicy("AllowAllOrigins",
-                builder =>
-                {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyHeader()
-                           .AllowAnyMethod();
-                });
-        });
 
         services.AddSingleton<MongoDbContext>(sp =>
         {
@@ -73,20 +55,69 @@ public class Startup
             return new MongoDbContext(Configuration);
         });
 
-        services.AddAuthorization(options =>
+        services.AddAuthorization();
+
+        services.AddMvc()
+            .AddSessionStateTempDataProvider();
+
+        services.AddDistributedMemoryCache();
+
+        services.AddSession(options =>
         {
-            options.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
-                .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-                .RequireAuthenticatedUser()
-                .Build());
+            options.IdleTimeout = TimeSpan.FromSeconds(1800);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
         });
+
         services.AddHealthChecks();
+
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowSpecificOrigin",
+                builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+        });
 
         // Add logging services
         services.AddLogging(loggingBuilder =>
         {
             // Configure console logging
             loggingBuilder.AddConsole();
+        });
+    }
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+        else
+        {
+            app.UseExceptionHandler("/Home/Error");
+            app.UseHsts();
+        }
+
+        app.UseHttpsRedirection();
+        app.UseStaticFiles();
+
+        app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.UseSession();
+
+        app.UseCors("AllowSpecificOrigin");
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+            endpoints.MapHealthChecks("/health");
         });
     }
 }

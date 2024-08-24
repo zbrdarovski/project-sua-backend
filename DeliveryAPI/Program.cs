@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using DeliveryAPI;
 
@@ -97,6 +99,18 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHealthChecks();
 
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        builder =>
+        {
+            builder.AllowAnyOrigin() // Allow all origins
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
 // RabbitMQ
 var rabbitMQService = new RabbitMQService();
 builder.Services.AddSingleton(rabbitMQService);
@@ -111,10 +125,10 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseRouting();
+app.UseCors("AllowAllOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
-
 app.MapPost("/api/deliveries", (DeliveryCreateDto deliveryDto, [FromServices] MongoDbContext dbContext, [FromServices] ILogger<Program> logger) =>
 {
     rabbitMQService.SendLog(new LoggingEntry

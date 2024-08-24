@@ -30,6 +30,18 @@ builder.Services.AddSingleton<StatsRepository>(serviceProvider =>
     return new StatsRepository(mongoDbConnectionString);
 });
 
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        builder =>
+        {
+            builder.AllowAnyOrigin() // Allow all origins
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
+
 var app = builder.Build();
 
 
@@ -42,5 +54,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.MapControllers();
+
+app.UseCors("AllowAllOrigins");
 
 app.Run();

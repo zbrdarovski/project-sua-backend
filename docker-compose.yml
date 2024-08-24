@@ -1,83 +1,126 @@
 version: '3.8'
 
 services:
-  cartpaymentapi:
-    build: ./CartAPI
+  userinterface:
+    image: zbrdarovski/userinterface:latest
     ports:
-      - "11180:5000"
+      - "11180:11180"
     environment:
-      RABBITMQ_HOSTNAME: amqp://rabbit:5672
+      RABBITMQ_HOSTNAME: rabbit
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: student
       RABBITMQ_PASSWORD: student123
-      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
-
-  inventoryapi:
-    build: ./InventoryAPI
-    ports:
-      - "11181:44309"
-    environment:
-      RABBITMQ_HOSTNAME: amqp://rabbit:5672
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USERNAME: student
-      RABBITMQ_PASSWORD: student123
-      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
-
-  commentsratings:
-    build: ./CommentsRatingsAPI
-    ports:
-      - "11182:5000"
-    environment:
-      RABBITMQ_HOSTNAME: amqp://rabbit:5672
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USERNAME: student
-      RABBITMQ_PASSWORD: student123
-      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
-
-  deliveryapi:
-    build: ./DeliveryAPI
-    ports:
-      - "11183:5000"
-    environment:
-      RABBITMQ_HOSTNAME: amqp://rabbit:5672
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USERNAME: student
-      RABBITMQ_PASSWORD: student123
-      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
-
-  loggingapi:
-    build: ./LoggingAPI
-    ports:
-      - "11184:5000"
-    environment:
-      RABBITMQ_HOSTNAME: amqp://rabbit:5672
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USERNAME: student
-      RABBITMQ_PASSWORD: student123
-      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
+      MONGODB_CONNECTION_STRING: "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority"
+    networks:
+      - default
+      - rabbit
 
   userapi:
-    build: ./UserAPI
+    image: zbrdarovski/userapi:latest
     ports:
-      - "11185:5000"
+      - "11181:1181"
     environment:
-      RABBITMQ_HOSTNAME: amqp://rabbit:5672
+      RABBITMQ_HOSTNAME: rabbit
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: student
       RABBITMQ_PASSWORD: student123
-      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
+      MONGODB_CONNECTION_STRING: "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority"
+    networks:
+      - default
+      - rabbit
 
-  userinterface:
-    build: ./UserInterface
+  deliveryapi:
+    image: zbrdarovski/deliveryapi:latest
     ports:
-      - "11186:80"
+      - "11182:1182"
     environment:
-      RABBITMQ_HOSTNAME: amqp://rabbit:5672
+      RABBITMQ_HOSTNAME: rabbit
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: student
       RABBITMQ_PASSWORD: student123
-      MONGODB_CONNECTION_STRING: "your_mongodb_connection_string"
+      MONGODB_CONNECTION_STRING: "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority"
+    networks:
+      - default
+      - rabbit
 
+  cartpaymentapi:
+    image: zbrdarovski/cartapi:latest
+    ports:
+      - "11183:1183"
+    environment:
+      RABBITMQ_HOSTNAME: rabbit
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority"
+    networks:
+      - default
+      - rabbit
+
+  inventoryapi:
+    image: zbrdarovski/inventoryapi:latest
+    ports:
+      - "11184:1184"
+    environment:
+      RABBITMQ_HOSTNAME: rabbit
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority"
+    networks:
+      - default
+      - rabbit
+
+  commentsratings:
+    image: zbrdarovski/commentsratingsapi:latest
+    ports:
+      - "11185:1185"
+    environment:
+      RABBITMQ_HOSTNAME: rabbit
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority"
+    networks:
+      - default
+      - rabbit
+
+  loggingapi:
+    image: zbrdarovski/loggingapi:latest
+    ports:
+      - "11186:1186"
+    environment:
+      RABBITMQ_HOSTNAME: rabbit
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: student
+      RABBITMQ_PASSWORD: student123
+      MONGODB_CONNECTION_STRING: "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority"
+    networks:
+      - default
+      - rabbit
+  statsbrdarovski:
+    image: zbrdarovski/statsbrdarovskiapi:latest
+    ports:
+      - "11187:1187"
+    environment:
+      MONGODB_CONNECTION_STRING: "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority"
+    networks:
+      - default
+      - rabbit
+
+  statsharamija:
+    image: zbrdarovski/statsharamijaapi:latest
+    ports:
+      - "11188:1188"
+    environment:
+      MONGODB_CONNECTION_STRING: "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority"
+    networks:
+      - default
+      - rabbit
+  
 networks:
   default:
     driver: bridge
+  rabbit:
+    name: rabbit_network
+    external: true
