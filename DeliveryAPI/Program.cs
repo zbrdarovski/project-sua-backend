@@ -10,6 +10,8 @@ using DeliveryAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
+string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
 // Add logging services
 builder.Services.AddLogging(loggingBuilder =>
 {
@@ -70,21 +72,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddSingleton<MongoDbContext>(sp =>
 {
-    var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
+    string mongoDbConnectionString;
 
-    if (mongoDbSettings == null)
+    if (environment == "Development")
     {
-        throw new ArgumentNullException(nameof(mongoDbSettings), "MongoDB settings are missing in configuration.");
+        // In Development, use the connection string from appsettings.json
+        mongoDbConnectionString = builder.Configuration.GetConnectionString("MongoDBConnection");
     }
-
-    if (mongoDbSettings.ConnectionString is null)
+    else
     {
-        throw new ArgumentNullException(nameof(mongoDbSettings.ConnectionString), "MongoDB connection string is missing in configuration.");
-    }
-
-    if (mongoDbSettings.DatabaseName is null)
-    {
-        throw new ArgumentNullException(nameof(mongoDbSettings.DatabaseName), "MongoDB database name is missing in configuration.");
+        // In non-Development, use the environment variable
+        mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? "your_fallback_connection_string";
     }
 
     return new MongoDbContext(builder.Configuration);
