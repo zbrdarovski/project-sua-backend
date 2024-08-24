@@ -12,7 +12,7 @@ import CommentsRatings from './CommentsRatings';
 import Payments from './Payments';
 import Rabbit from './Rabbit';
 import Stats from './Stats';
-import StatsHaramija from './StatsHaramija';
+import StatsHaramija from './statsHaramija';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
