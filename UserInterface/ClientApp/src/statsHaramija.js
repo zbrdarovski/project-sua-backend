@@ -1,4 +1,4 @@
-import './statsHaramija.css';
+import './StatsHaramija.css';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 

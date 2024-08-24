@@ -13,6 +13,9 @@ var app = builder.Build();
 
 Process npmProcess = null;
 
+// Run npm start in the ClientApp folder if in Development environment and not in debug mode
+if (app.Environment.IsDevelopment() && !Debugger.IsAttached)
+{
     var clientAppPath = Path.Combine(Directory.GetCurrentDirectory(), "ClientApp");
     if (Directory.Exists(clientAppPath))
     {
@@ -46,6 +49,7 @@ Process npmProcess = null;
     {
         Console.WriteLine($"ClientApp directory not found: {clientAppPath}");
     }
+}
 
 // Configure the HTTP request pipeline.
 app.UseStaticFiles();
