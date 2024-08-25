@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StatsBrdarovski.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StatsBrdarovski.Controllers
 {
@@ -52,6 +54,5 @@ namespace StatsBrdarovski.Controllers
             await _statsRepository.UpdateStatAsync(stat.Endpoint);
             return Ok();
         }
-
     }
 }

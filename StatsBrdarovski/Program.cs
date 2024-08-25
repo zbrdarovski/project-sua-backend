@@ -1,34 +1,47 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
 using StatsBrdarovski;
-using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Add services to the container
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "StatsBrdarovski API", Version = "v1" });
+});
 
+// Configure MongoDB services
 string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-builder.Services.AddSingleton<StatsRepository>(serviceProvider =>
+builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
 {
     string mongoDbConnectionString;
 
     if (environment == "Development")
     {
-        // In Development, use the connection string from appsettings.json
         mongoDbConnectionString = builder.Configuration.GetConnectionString("MongoDBConnection");
     }
     else
     {
-        // In non-Development, use the environment variable
-        mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") ?? "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority";
+        mongoDbConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
+                                  ?? "mongodb+srv://sua-user:30SD8YKo4tg7R7v5@cluster0.550s6o6.mongodb.net/?retryWrites=true&w=majority";
     }
 
-    return new StatsRepository(mongoDbConnectionString);
+    return new MongoClient(mongoDbConnectionString);
 });
+
+builder.Services.AddSingleton(s =>
+{
+    var client = s.GetRequiredService<IMongoClient>();
+    return client.GetDatabase("StatsDatabase");
+});
+
+builder.Services.AddScoped<StatsRepository>();
 
 // Add CORS services
 builder.Services.AddCors(options =>
@@ -44,17 +57,20 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-
-// Configure the HTTP request pipeline.
-
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "StatsBrdarovski");
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "StatsBrdarovski API v1");
+    });
+}
+
+app.UseRouting();
+app.UseCors("AllowAllOrigins");
+app.UseAuthorization();
 
 app.MapControllers();
-
-app.UseCors("AllowAllOrigins");
 
 app.Run();

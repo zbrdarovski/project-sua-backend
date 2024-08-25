@@ -1,10 +1,10 @@
-using CommentsRatingsAPI;
 using CommentsRatingsAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using MongoDB.Bson;
-using CommentsRatingsAPI.Models;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CommentsRatingsAPI.Controllers
 {
@@ -12,16 +12,21 @@ namespace CommentsRatingsAPI.Controllers
     [Route("[controller]")]
     public class CommentsRatingsController : ControllerBase
     {
-   
         private readonly ILogger<CommentsRatingsController> _logger;
         private readonly CommentsRatingsRepository _commentsRatingsRepository;
         private readonly RabbitMQService _rabbitMQService;
+        private readonly StatsUpdater _statsUpdater;
 
-        public CommentsRatingsController(ILogger<CommentsRatingsController> logger, CommentsRatingsRepository commentsRatingsRepository, RabbitMQService rabbitMQService)
+        public CommentsRatingsController(
+            ILogger<CommentsRatingsController> logger,
+            CommentsRatingsRepository commentsRatingsRepository,
+            RabbitMQService rabbitMQService,
+            StatsUpdater statsUpdater)
         {
             _logger = logger;
             _commentsRatingsRepository = commentsRatingsRepository;
             _rabbitMQService = rabbitMQService;
+            _statsUpdater = statsUpdater;
         }
 
         // Comments Endpoints
@@ -30,6 +35,8 @@ namespace CommentsRatingsAPI.Controllers
         [HttpGet("comments/{itemId}", Name = "GetCommentsByItemId")]
         public async Task<IEnumerable<Comment>> GetCommentsByItemId(string itemId)
         {
+            await _statsUpdater.UpdateStatsAsync("/comments/{itemId}");
+
             _rabbitMQService.SendLog(new LoggingEntry
             {
                 Message = "Get comment by item id: " + itemId,
@@ -48,6 +55,8 @@ namespace CommentsRatingsAPI.Controllers
         [HttpPost("comments", Name = "AddComment")]
         public async Task<IActionResult> AddCommentAsync([FromBody] Comment comment)
         {
+            await _statsUpdater.UpdateStatsAsync("/comments");
+
             _rabbitMQService.SendLog(new LoggingEntry
             {
                 Message = "Add comment: " + comment,
@@ -73,6 +82,8 @@ namespace CommentsRatingsAPI.Controllers
         [HttpPut("comments/{commentId}", Name = "EditCommentById")]
         public async Task<IActionResult> EditCommentAsync(string commentId, [FromBody] string newContent)
         {
+            await _statsUpdater.UpdateStatsAsync("/comments/{commentId}");
+
             _rabbitMQService.SendLog(new LoggingEntry
             {
                 Message = "Edit comment by comment id: " + commentId,
@@ -82,6 +93,7 @@ namespace CommentsRatingsAPI.Controllers
                 ApplicationName = "CommentsRatingsAPI",
                 LogType = "Info"
             });
+
             try
             {
                 var success = await _commentsRatingsRepository.EditCommentAsync(commentId, newContent);
@@ -105,9 +117,11 @@ namespace CommentsRatingsAPI.Controllers
         [HttpDelete("comments/{commentId}", Name = "RemoveCommentById")]
         public async Task<IActionResult> RemoveCommentAsync(string commentId)
         {
+            await _statsUpdater.UpdateStatsAsync("/comments/{commentId}");
+
             _rabbitMQService.SendLog(new LoggingEntry
             {
-                Message = "Remove comment by cmment id: " + commentId,
+                Message = "Remove comment by comment id: " + commentId,
                 Timestamp = DateTime.UtcNow,
                 Url = "comments/commentId",
                 CorrelationId = Guid.NewGuid().ToString(),
@@ -133,9 +147,11 @@ namespace CommentsRatingsAPI.Controllers
         [HttpGet("ratings/{itemId}", Name = "GetRatingsByItemId")]
         public async Task<List<Rating>> GetRatingsByItemId(string itemId)
         {
+            await _statsUpdater.UpdateStatsAsync("/ratings/{itemId}");
+
             _rabbitMQService.SendLog(new LoggingEntry
             {
-                Message = "get ratings by item id: " + itemId,
+                Message = "Get ratings by item id: " + itemId,
                 Timestamp = DateTime.UtcNow,
                 Url = "ratings/itemId",
                 CorrelationId = Guid.NewGuid().ToString(),
@@ -151,6 +167,8 @@ namespace CommentsRatingsAPI.Controllers
         [HttpPost("ratings", Name = "AddRating")]
         public async Task<IActionResult> AddRatingAsync([FromBody] Rating rating)
         {
+            await _statsUpdater.UpdateStatsAsync("/ratings");
+
             _rabbitMQService.SendLog(new LoggingEntry
             {
                 Message = "Add rating: " + rating,
@@ -176,6 +194,8 @@ namespace CommentsRatingsAPI.Controllers
         [HttpPut("ratings/{ratingId}", Name = "EditRatingById")]
         public async Task<IActionResult> EditRatingAsync(string ratingId, [FromBody] int newValue)
         {
+            await _statsUpdater.UpdateStatsAsync("/ratings/{ratingId}");
+
             _rabbitMQService.SendLog(new LoggingEntry
             {
                 Message = "Edit rating by Id: " + ratingId,
@@ -209,6 +229,8 @@ namespace CommentsRatingsAPI.Controllers
         [HttpDelete("ratings/{ratingId}", Name = "RemoveRatingById")]
         public async Task<IActionResult> RemoveRatingAsync(string ratingId)
         {
+            await _statsUpdater.UpdateStatsAsync("/ratings/{ratingId}");
+
             _rabbitMQService.SendLog(new LoggingEntry
             {
                 Message = "Remove rating by Id: " + ratingId,
@@ -230,6 +252,5 @@ namespace CommentsRatingsAPI.Controllers
                 return NotFound("Rating not found");
             }
         }
-
     }
 }

@@ -47,6 +47,12 @@ builder.Services.AddSwaggerGen(c =>
     c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
+// Register StatsUpdater
+builder.Services.AddHttpClient<StatsUpdater>(client =>
+{
+    client.BaseAddress = new Uri("https://statsbrdarovski.onrender.com"); // Replace with your actual StatsBrdarovski URL
+});
+
 var jwtSecret = builder.Configuration.GetValue<string>("JWT_SECRET");
 var key = Encoding.ASCII.GetBytes("ProjektSUA ProjektSUA ProjektSUA");
 

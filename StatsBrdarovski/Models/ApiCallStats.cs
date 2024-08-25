@@ -7,17 +7,9 @@ namespace StatsBrdarovski.Models
     public class ApiCallStat
     {
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)] // Omogoča pretvorbo med ObjectId in string
-        public string Id { get; set; }
-
-        [BsonElement("Endpoint")]
+        public ObjectId Id { get; set; }
         public string Endpoint { get; set; }
-
-        [BsonElement("Count")]
-        public int Count { get; set; }
-
-        [BsonElement("LastCalled")]
+        public int CallCount { get; set; }
         public DateTime LastCalled { get; set; }
     }
-
 }
